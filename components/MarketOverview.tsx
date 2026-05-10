@@ -164,9 +164,10 @@ export default function MarketOverview({ data, panelsData, hideRanking }: { data
               <div key={i} className="p-3 rounded-lg" style={{ backgroundColor: "var(--bg)", border: "1px solid var(--border)" }}>
                 <div className="font-bold text-white mb-1">{c.Condition}</div>
                 <div className="flex gap-4 flex-wrap text-sm">
-                  <span className="text-green-400">✅ BUY: {c["Stocks to BUY"]}</span>
-                  {c["Stocks to AVOID"] && <span className="text-red-400">❌ AVOID: {c["Stocks to AVOID"]}</span>}
+                  <span className="text-green-400">📈 Macro Beneficiaries: {c["Stocks to BUY"]}</span>
+                  {c["Stocks to AVOID"] && <span className="text-red-400">📉 Macro Headwinds: {c["Stocks to AVOID"]}</span>}
                 </div>
+                <div className="text-yellow-600 text-xs mt-1">⚠️ These are macro-based sector observations — verify individual stock charts before trading</div>
                 <div className="text-slate-500 text-xs mt-1">{c.Reason}</div>
               </div>
             ))}
