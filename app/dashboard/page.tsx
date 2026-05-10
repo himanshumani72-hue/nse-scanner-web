@@ -22,6 +22,14 @@ export default async function DashboardPage() {
   const wPattern     = alerts?.filter(a => a.scan_type === "W_PATTERN_5M")  ?? [];
   const lastScan     = alerts?.[0]?.scanned_at ?? null;
 
+  // Fetch market overview data
+  const { data: metaRow } = await supabase
+    .from("dashboard_meta")
+    .select("data")
+    .eq("id", 1)
+    .single();
+  const marketData = metaRow?.data ?? null;
+
   // Days left in trial
   let daysLeft: number | null = null;
   if (sub?.status === "trial" && sub.trial_end) {
@@ -38,6 +46,7 @@ export default async function DashboardPage() {
       bigMovers={bigMovers}
       chartPatterns={chartPat}
       wPatterns={wPattern}
+      marketData={marketData}
     />
   );
 }

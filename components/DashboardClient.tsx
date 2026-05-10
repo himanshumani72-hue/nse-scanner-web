@@ -1,11 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { TrendingUp, Zap, BarChart2, Clock, LogOut, CreditCard, RefreshCw, Sun, Moon } from "lucide-react";
+import { TrendingUp, Zap, BarChart2, Clock, LogOut, CreditCard, RefreshCw, Sun, Moon, Globe } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "@/components/ThemeProvider";
 import type { Alert } from "@/lib/types";
 import AlertsTable from "./AlertsTable";
+import MarketOverview from "./MarketOverview";
 
 interface Props {
   userEmail:     string;
@@ -15,11 +16,12 @@ interface Props {
   bigMovers:     Alert[];
   chartPatterns: Alert[];
   wPatterns:     Alert[];
+  marketData?:   any;
 }
 
-type Tab = "movers" | "patterns" | "wpattern";
+type Tab = "movers" | "patterns" | "wpattern" | "market";
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, marketData }: Props) {
   const [tab,         setTab]        = useState<Tab>("movers");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
@@ -59,9 +61,10 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   };
 
   const tabs: { key: Tab; label: string; icon: React.ElementType; count: number; color: string }[] = [
-    { key: "movers",   label: "Big Movers",     icon: Zap,      count: movers.length,   color: "text-orange-400" },
-    { key: "patterns", label: "Chart Patterns",  icon: BarChart2,count: patterns.length, color: "text-blue-400" },
-    { key: "wpattern", label: "W-Pattern 5M",    icon: TrendingUp,count: wPat.length,   color: "text-purple-400" },
+    { key: "movers",   label: "Big Movers",     icon: Zap,       count: movers.length,   color: "text-orange-400" },
+    { key: "patterns", label: "Chart Patterns",  icon: BarChart2, count: patterns.length, color: "text-blue-400" },
+    { key: "wpattern", label: "W-Pattern 5M",    icon: TrendingUp,count: wPat.length,    color: "text-purple-400" },
+    { key: "market",   label: "Market Overview", icon: Globe,     count: 0,              color: "text-green-400" },
   ];
 
   const currentAlerts = tab === "movers" ? movers : tab === "patterns" ? patterns : wPat;
@@ -150,7 +153,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         </div>
 
         {/* ── Table ── */}
-        <AlertsTable alerts={currentAlerts} scanType={tab} />
+        {tab === "market" ? <MarketOverview data={marketData} /> : <AlertsTable alerts={currentAlerts} scanType={tab} />}
       </main>
     </div>
   );
