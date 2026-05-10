@@ -43,7 +43,7 @@ export default function MarketOverview({ data, panelsData, hideRanking }: { data
                 <div className="text-xs text-slate-500 mb-1">{ind.name}</div>
                 <div className="font-bold text-white text-sm">{ind.value}</div>
                 <div className={`text-xs font-medium mt-1 ${ind.status === "Rising" ? "text-green-400" : "text-red-400"}`}>
-                  {ind.status === "Rising" ? "▲" : "▼"} {ind.change}
+                  {ind.status === "Rising" ? "▲ +" : "▼ -"}{ind.change}
                 </div>
               </div>
             ))}
