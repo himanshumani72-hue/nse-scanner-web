@@ -1,14 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { TrendingUp, Zap, BarChart2, Clock, CreditCard, RefreshCw, Sun, Moon, Globe, Trophy } from "lucide-react";
-import Link from "next/link";
 import { useTheme } from "@/components/ThemeProvider";
 import type { Alert } from "@/lib/types";
-import AlertsTable from "./AlertsTable";
-import MarketOverview from "./MarketOverview";
+import PulseDot from "./ui/PulseDot";
 import ProfileDropdown from "./ProfileDropdown";
+import BigMoversView from "./views/BigMoversView";
+import CupHandleView from "./views/CupHandleView";
+import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
+import Link from "next/link";
+import { Sun, Moon, CreditCard } from "lucide-react";
 
 interface Props {
   userEmail:     string;
@@ -22,20 +24,40 @@ interface Props {
   panelsData?:   any;
 }
 
-type Tab = "movers" | "patterns" | "market" | "ranking";
+type Tab = "overview" | "movers" | "patterns" | "ranking";
+
+const ICONS = {
+  Globe:   () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="6" cy="6" r="4.5"/><path d="M1.5 6 H10.5"/><path d="M6 1.5 a6 5 0 0 1 0 9 a6 5 0 0 1 0 -9"/></svg>,
+  Bolt:    () => <svg width={12} height={12} viewBox="0 0 12 12" fill="currentColor"><path d="M6.8 1 L2.5 6.6 H5.6 L4.4 11 L9.2 5.2 H6.4 L7.5 1 Z"/></svg>,
+  Pattern: () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 6 Q3 9 5 9 Q7 9 8.5 6 L8.5 4 L11 6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  Trophy:  () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M3 2 H9 V5 a3 3 0 0 1 -6 0 Z" strokeLinejoin="round"/><path d="M3 3 H1.5 V4.2 a1.5 1.5 0 0 0 1.5 1.5"/><path d="M9 3 H10.5 V4.2 a1.5 1.5 0 0 1 -1.5 1.5"/><path d="M4.5 8 H7.5 L8 10.5 H4 Z" strokeLinejoin="round"/></svg>,
+  Down:    () => <svg width={10} height={10} viewBox="0 0 10 10"><path d="M5 9 L9 2 L1 2 Z" fill="currentColor"/></svg>,
+  Search:  () => <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6" cy="6" r="4.25"/><path d="M9.5 9.5 L12.5 12.5" strokeLinecap="round"/></svg>,
+};
 
 export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, marketData, panelsData }: Props) {
-  const [tab,         setTab]        = useState<Tab>("movers");
+  const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
+  const [clock,       setClock]      = useState("");
   const supabase = createClient();
   const { theme, toggle } = useTheme();
 
   useEffect(() => {
-    const channel = supabase
-      .channel("alerts-live")
+    const tick = () => {
+      const d = new Date();
+      const ist = new Date(d.getTime() + 5.5 * 3600000);
+      setClock(ist.toISOString().slice(11, 19) + " IST");
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const channel = supabase.channel("alerts-live")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "alerts" }, (payload) => {
         const a = payload.new as Alert;
         setLastUpdated(a.scanned_at);
@@ -43,124 +65,205 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         setTimeout(() => setIsLive(false), 5000);
         if (a.scan_type === "BIG_MOVERS")    setMovers(prev  => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "CHART_PATTERN") setPatterns(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
-      })
-      .subscribe();
+      }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
 
   const fmtTime = (iso: string | null) => {
     if (!iso) return "—";
-    return new Date(iso).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }) + " IST";
+    const d = new Date(iso);
+    const ist = new Date(d.getTime() + 5.5 * 3600000);
+    return ist.toISOString().slice(11, 16) + " IST";
   };
 
-  const tabs: { key: Tab; label: string; icon: React.ElementType; count: number; color: string }[] = [
-    { key: "movers",   label: "Big Movers",          icon: Zap,      count: movers.length,   color: "text-orange-400" },
-    { key: "patterns", label: "Cup & Handle Pattern", icon: BarChart2,count: patterns.length, color: "text-blue-400" },
-    { key: "ranking",  label: "Probability Ranking",  icon: Trophy,   count: 0,               color: "text-yellow-400" },
-    { key: "market",   label: "Market Overview",      icon: Globe,    count: 0,               color: "text-green-400" },
+  const TABS: { id: Tab; label: string; icon: () => JSX.Element; count: number | null }[] = [
+    { id: "overview", label: "Market Overview", icon: ICONS.Globe,   count: null },
+    { id: "movers",   label: "Big Movers",      icon: ICONS.Bolt,    count: movers.length },
+    { id: "patterns", label: "Cup & Handle",    icon: ICONS.Pattern, count: patterns.length },
+    { id: "ranking",  label: "Probability",     icon: ICONS.Trophy,  count: panelsData?.ranking?.length ?? null },
+  ];
+
+  const stats = [
+    { label: "Big Mover Alerts",  value: movers.length,                       hint: "Triggered today",       icon: ICONS.Bolt,    tone: "--up" },
+    { label: "Cup & Handle",      value: patterns.length,                     hint: "Bases in formation",    icon: ICONS.Pattern, tone: "--accent-2" },
+    { label: "Top Ranked",        value: panelsData?.ranking?.length ?? 0,    hint: "Probability ≥ 75%",     icon: ICONS.Trophy,  tone: "--violet" },
+    { label: "Distribution",      value: panelsData?.falling_stocks?.length ?? 0, hint: "Risk flagged · 1D-5D", icon: ICONS.Down, tone: "--down" },
   ];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-0)", display: "flex", flexDirection: "column" }}>
+
       {/* ── Header ── */}
-      <header className="border-b px-6 py-3" style={{ backgroundColor: "var(--header-bg)", borderColor: "var(--border)" }}>
-        <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-              <TrendingUp size={17} className="text-white" />
-            </div>
-            <span className="font-bold text-white">NSE Scanner Pro</span>
+      <header style={{ display: "flex", alignItems: "center", gap: 18, padding: "14px 28px", borderBottom: "1px solid var(--line)", background: "linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 100%)", position: "sticky", top: 0, zIndex: 50, backdropFilter: "blur(8px)" }}>
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg, #2bd07a 0%, #5b8cff 100%)", display: "grid", placeItems: "center", boxShadow: "0 0 0 1px rgba(255,255,255,.06), 0 6px 18px -8px rgba(43,208,122,.5)" }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 10 L5 6 L7 8 L12 3" stroke="#06090c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="12" cy="3" r="1.4" fill="#06090c"/>
+            </svg>
           </div>
-
-          <div className="flex items-center gap-3">
-            {/* Live indicator */}
-            <div className="flex items-center gap-2 text-sm">
-              <span className={`w-2 h-2 rounded-full ${isLive ? "bg-green-400 live-dot" : "bg-slate-600"}`}></span>
-              <span className="text-slate-500 hidden md:inline text-xs">
-                {isLive ? "Live update!" : `Last scan: ${fmtTime(lastUpdated)}`}
-              </span>
-            </div>
-
-            {/* Trial/Subscribe badge */}
-            {subStatus === "trial" && daysLeft !== null && daysLeft > 5 && (
-              <Link href="/billing" className="hidden md:flex items-center gap-1.5 bg-yellow-900/30 border border-yellow-700/30 text-yellow-400 text-xs px-3 py-1.5 rounded-lg hover:border-yellow-500/50 transition-colors">
-                <CreditCard size={13} /> {daysLeft}d trial left
-              </Link>
-            )}
-            {subStatus === "trial" && daysLeft !== null && daysLeft <= 5 && (
-              <Link href="/billing" className="hidden md:flex items-center gap-1.5 bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold animate-pulse">
-                <CreditCard size={13} /> {daysLeft}d left — Subscribe ₹99
-              </Link>
-            )}
-            {(subStatus === "expired" || subStatus === "cancelled" || subStatus === "halted") && (
-              <Link href="/billing" className="hidden md:flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
-                <CreditCard size={13} /> Subscribe — ₹99/month
-              </Link>
-            )}
-
-            {/* Theme toggle */}
-            <button onClick={toggle} className="text-slate-500 hover:text-slate-300 p-1.5 rounded-lg hover:bg-slate-800 transition-colors" title="Toggle theme">
-              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-
-            {/* Profile dropdown */}
-            <ProfileDropdown email={userEmail} subStatus={subStatus} daysLeft={daysLeft} />
+          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--ink-0)" }}>NSE Scanner</span>
+            <span style={{ fontSize: 9.5, color: "var(--ink-3)", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 500 }}>Pro · v1.0</span>
           </div>
+        </div>
+
+        <div style={{ width: 1, height: 22, background: "var(--line)", margin: "0 6px" }}/>
+
+        {/* Live status */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <PulseDot color={isLive ? "var(--up)" : "var(--accent)"} />
+          <span style={{ fontSize: 12, color: "var(--ink-1)" }}>{isLive ? "Live update!" : "Markets closed"}</span>
+          <span className="num" style={{ fontSize: 11.5, color: "var(--ink-3)" }}>{clock}</span>
+        </div>
+
+        {/* Search bar */}
+        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", maxWidth: 460, padding: "0 12px", height: 34, background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 9, color: "var(--ink-3)" }}>
+            <ICONS.Search/>
+            <span style={{ fontSize: 12.5 }}>Search ticker, pattern, sector…</span>
+            <div style={{ flex: 1 }}/>
+            <kbd style={{ fontFamily: "var(--mono)", fontSize: 10, padding: "2px 6px", border: "1px solid var(--line-2)", borderRadius: 4, color: "var(--ink-2)", background: "var(--bg-3)" }}>⌘ K</kbd>
+          </div>
+        </div>
+
+        {/* Right controls */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {subStatus === "trial" && daysLeft !== null && daysLeft <= 5 && (
+            <Link href="/billing" style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--down)", color: "white", fontSize: 11.5, fontWeight: 600, padding: "5px 12px", borderRadius: 8, textDecoration: "none" }}>
+              <CreditCard size={13}/> {daysLeft}d left
+            </Link>
+          )}
+          {subStatus === "trial" && daysLeft !== null && daysLeft > 5 && (
+            <Link href="/billing" style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--warn-bg)", color: "var(--warn)", fontSize: 11.5, border: "1px solid rgba(243,181,74,.30)", padding: "5px 12px", borderRadius: 8, textDecoration: "none" }}>
+              <CreditCard size={13}/> {daysLeft}d trial
+            </Link>
+          )}
+          <button onClick={toggle} style={{ background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--ink-2)", width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", cursor: "pointer" }}>
+            {theme === "dark" ? <Sun size={14}/> : <Moon size={14}/>}
+          </button>
+          <ProfileDropdown email={userEmail} subStatus={subStatus} daysLeft={daysLeft}/>
         </div>
       </header>
 
-      <main className="max-w-screen-2xl mx-auto px-4 py-6">
-        {/* ── Stats cards ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {[
-            { label: "Big Mover Alerts",      value: movers.length,        icon: Zap,      color: "text-orange-400", bg: "bg-orange-900/20" },
-            { label: "Cup & Handle Patterns", value: patterns.length,      icon: BarChart2,color: "text-blue-400",   bg: "bg-blue-900/20" },
-            { label: "Top Ranked Stocks",     value: panelsData?.ranking?.length ?? 0, icon: Trophy, color: "text-yellow-400", bg: "bg-yellow-900/20" },
-            { label: "Last Scan (IST)",        value: fmtTime(lastUpdated), icon: Clock,    color: "text-green-400",  bg: "bg-green-900/20" },
-          ].map(({ label, value, icon: Icon, color, bg }) => (
-            <div key={label} className="card p-4 flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-lg ${bg} flex items-center justify-center flex-shrink-0`}>
-                <Icon size={18} className={color} />
-              </div>
-              <div>
-                <div className="font-bold text-lg text-white leading-none">{value}</div>
-                <div className="text-slate-500 text-xs mt-1">{label}</div>
+      {/* ── Status Strip ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr) auto", gap: 0, borderBottom: "1px solid var(--line)", background: "var(--bg-1)" }}>
+        {stats.map(s => (
+          <div key={s.label} style={{ padding: "16px 22px", borderRight: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: `color-mix(in oklab, var(${s.tone}) 12%, transparent)`, border: `1px solid color-mix(in oklab, var(${s.tone}) 28%, transparent)`, color: `var(${s.tone})`, display: "grid", placeItems: "center" }}>
+              <s.icon/>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
+              <span style={{ fontSize: 10.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.10em", fontWeight: 500 }}>{s.label}</span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 2 }}>
+                <span className="num" style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--ink-0)" }}>{s.value}</span>
+                <span style={{ fontSize: 11, color: "var(--ink-3)" }}>{s.hint}</span>
               </div>
             </div>
-          ))}
+          </div>
+        ))}
+        <div style={{ padding: "16px 24px", display: "flex", flexDirection: "column", justifyContent: "center", minWidth: 200 }}>
+          <span style={{ fontSize: 10.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.10em", fontWeight: 500 }}>Last Scan</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+            <PulseDot color="var(--accent)"/>
+            <span className="num" style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--ink-0)" }}>{fmtTime(lastUpdated)}</span>
+          </div>
+          <span style={{ fontSize: 10.5, color: "var(--ink-3)", marginTop: 2 }}>Auto-updates on scan</span>
         </div>
+      </div>
 
-        {/* ── Tabs ── */}
-        <div className="flex gap-2 mb-4 flex-wrap">
-          {tabs.map(({ key, label, icon: Icon, count, color }) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === key ? "tab-active" : "tab-idle"}`}
-            >
-              <Icon size={15} className={tab === key ? "text-white" : color} />
-              {label}
-              {count > 0 && (
-                <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === key ? "bg-white/20" : "bg-slate-700"}`}>
-                  {count}
-                </span>
+      {/* ── Tabs ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 28px", borderBottom: "1px solid var(--line)", background: "var(--bg-0)", position: "sticky", top: 61, zIndex: 40 }}>
+        {TABS.map(t => {
+          const isActive = tab === t.id;
+          return (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "14px 14px 13px", margin: "0 2px", background: "transparent", border: "none", borderBottom: `2px solid ${isActive ? "var(--accent)" : "transparent"}`, color: isActive ? "var(--ink-0)" : "var(--ink-2)", fontSize: 13, fontWeight: 500, fontFamily: "inherit", cursor: "pointer", transition: "color .12s ease, border-color .12s ease", marginBottom: -1 }}>
+              <span style={{ color: isActive ? "var(--accent)" : "var(--ink-3)" }}><t.icon/></span>
+              <span>{t.label}</span>
+              {t.count !== null && (
+                <span className="num" style={{ fontSize: 10.5, padding: "2px 7px", borderRadius: 999, background: isActive ? "rgba(91,140,255,.14)" : "var(--bg-3)", color: isActive ? "var(--accent-2)" : "var(--ink-3)", border: `1px solid ${isActive ? "rgba(91,140,255,.30)" : "var(--line)"}` }}>{t.count}</span>
               )}
             </button>
-          ))}
-          {isLive && (
-            <div className="ml-auto flex items-center gap-1.5 text-green-400 text-sm animate-pulse">
-              <RefreshCw size={13} />
-              <span>Updating live…</span>
-            </div>
-          )}
-        </div>
+          );
+        })}
+        <div style={{ flex: 1 }}/>
+        {isLive && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 8 }}>
+            <PulseDot color="var(--up)"/>
+            <span style={{ fontSize: 11.5, color: "var(--up)", fontWeight: 500 }}>Updating live…</span>
+          </div>
+        )}
+      </div>
 
-        {/* ── Content ── */}
-        {tab === "market"   && <MarketOverview data={marketData} panelsData={panelsData} hideRanking />}
-        {tab === "ranking"  && <RankingTable panelsData={panelsData} />}
-        {tab === "movers"   && <AlertsTable alerts={movers}   scanType="movers" />}
-        {tab === "patterns" && <AlertsTable alerts={patterns} scanType="patterns" />}
-      </main>
+      {/* ── Main Content ── */}
+      <div style={{ display: "flex", flex: 1 }}>
+        <main style={{ flex: 1, padding: "24px 28px", minWidth: 0 }}>
+          {tab === "overview"  && <MarketOverview data={marketData} panelsData={panelsData} hideRanking />}
+          {tab === "movers"    && <BigMoversView   alerts={movers} />}
+          {tab === "patterns"  && <CupHandleView   alerts={patterns} />}
+          {tab === "ranking"   && <RankingTable     panelsData={panelsData} />}
+        </main>
+
+        {/* ── Activity Rail ── */}
+        <aside style={{ width: 300, flexShrink: 0, borderLeft: "1px solid var(--line)", background: "var(--bg-1)", padding: "20px 18px", position: "sticky", top: 130, alignSelf: "flex-start", maxHeight: "calc(100vh - 130px)", overflowY: "auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <PulseDot color="var(--up)"/>
+            <h3 style={{ margin: 0, fontSize: 12, fontWeight: 600, letterSpacing: "0.10em", textTransform: "uppercase", color: "var(--ink-1)" }}>Live Activity</h3>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {movers.slice(0, 4).map((a, i) => (
+              <div key={a.id} style={{ display: "grid", gridTemplateColumns: "10px 1fr", gap: 12, paddingBottom: i < 3 ? 14 : 0, borderBottom: i < 3 ? "1px solid var(--line)" : "none" }}>
+                <div style={{ paddingTop: 4 }}>
+                  <span style={{ display: "block", width: 8, height: 8, borderRadius: "50%", background: "var(--up)", boxShadow: "0 0 0 3px rgba(43,208,122,.18)" }}/>
+                </div>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <span className="num" style={{ fontSize: 10.5, color: "var(--ink-3)" }}>
+                      {new Date(a.scanned_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}
+                    </span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 500, color: "var(--up)", background: "var(--up-bg)", border: "1px solid var(--up-line)" }}>Big Mover</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 12, color: "var(--ink-1)", lineHeight: 1.45 }}>
+                    {a.symbol} — Conf {a.data?.["Confidence %"] ?? ""}% · {String(a.data?.["Est. Move"] ?? a.data?.["Recovery %"] ?? "")}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {movers.length === 0 && (
+              <p style={{ fontSize: 12, color: "var(--ink-3)", margin: 0 }}>No alerts yet. Check back at 9:20 AM IST.</p>
+            )}
+          </div>
+
+          {/* Trial / subscribe box */}
+          <div style={{ marginTop: 22, padding: 14, background: "var(--bg-2)", border: "1px dashed var(--line-2)", borderRadius: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <svg width={11} height={11} viewBox="0 0 12 12" fill="var(--warn)"><path d="M6.8 1 L2.5 6.6 H5.6 L4.4 11 L9.2 5.2 H6.4 Z"/></svg>
+              <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-1)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                {subStatus === "active" ? "Pro · Active ✓" : `Trial · ${daysLeft ?? 30} days left`}
+              </span>
+            </div>
+            <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "var(--ink-3)", lineHeight: 1.5 }}>
+              {subStatus === "active" ? "Enjoying NSE Scanner Pro." : "Unlock unlimited scans, real-time alerts and pattern history."}
+            </p>
+            {subStatus !== "active" && (
+              <Link href="/billing" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--accent)", color: "white", fontSize: 12, fontWeight: 500, padding: "6px 14px", borderRadius: 8, textDecoration: "none" }}>
+                Upgrade to Pro · ₹99/mo
+              </Link>
+            )}
+          </div>
+        </aside>
+      </div>
+
+      {/* ── Footer ── */}
+      <footer style={{ padding: "12px 28px", borderTop: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 18, fontSize: 11, color: "var(--ink-3)", background: "var(--bg-1)" }}>
+        <span>© 2026 NSE Scanner Pro</span>
+        <span style={{ width: 3, height: 3, borderRadius: "50%", background: "var(--ink-4)", display: "inline-block" }}/>
+        <span>Data: NSE · 15min delayed for Free tier</span>
+        <div style={{ flex: 1 }}/>
+        <span className="num">v1.0.0</span>
+      </footer>
     </div>
   );
 }
