@@ -1,0 +1,43 @@
+import { createClient } from "@/lib/supabase/server";
+import DashboardClient from "@/components/DashboardClient";
+
+export const revalidate = 0;  // always fresh
+
+export default async function DashboardPage() {
+  const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: sub }       = await supabase.from("subscriptions").select("*").eq("user_id", user!.id).single();
+
+  // Fetch today's alerts for all scan types
+  const today = new Date().toISOString().split("T")[0];
+  const { data: alerts = [] } = await supabase
+    .from("alerts")
+    .select("*")
+    .eq("scan_date", today)
+    .order("scanned_at", { ascending: false });
+
+  const bigMovers    = alerts?.filter(a => a.scan_type === "BIG_MOVERS")    ?? [];
+  const chartPat     = alerts?.filter(a => a.scan_type === "CHART_PATTERN") ?? [];
+  const wPattern     = alerts?.filter(a => a.scan_type === "W_PATTERN_5M")  ?? [];
+  const lastScan     = alerts?.[0]?.scanned_at ?? null;
+
+  // Days left in trial
+  let daysLeft: number | null = null;
+  if (sub?.status === "trial" && sub.trial_end) {
+    const diff = new Date(sub.trial_end).getTime() - Date.now();
+    daysLeft = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }
+
+  return (
+    <DashboardClient
+      userEmail={user!.email!}
+      subStatus={sub?.status ?? "trial"}
+      daysLeft={daysLeft}
+      lastScan={lastScan}
+      bigMovers={bigMovers}
+      chartPatterns={chartPat}
+      wPatterns={wPattern}
+    />
+  );
+}
