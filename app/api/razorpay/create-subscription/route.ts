@@ -1,11 +1,5 @@
 import { NextResponse } from "next/server";
-import Razorpay from "razorpay";
 import { createClient } from "@/lib/supabase/server";
-
-const razorpay = new Razorpay({
-  key_id:     process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
 
 export async function POST() {
   try {
@@ -13,27 +7,35 @@ export async function POST() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const planId = process.env.RAZORPAY_PLAN_ID!;
-    if (!planId) return NextResponse.json({ error: "RAZORPAY_PLAN_ID not configured" }, { status: 500 });
+    const keyId     = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const planId    = process.env.RAZORPAY_PLAN_ID;
 
-    // Create subscription — starts immediately (trial already done at signup)
-    const sub = await razorpay.subscriptions.create({
+    if (!keyId || !keySecret)
+      return NextResponse.json({ error: "Razorpay not configured yet" }, { status: 503 });
+    if (!planId)
+      return NextResponse.json({ error: "RAZORPAY_PLAN_ID not configured" }, { status: 503 });
+
+    // Dynamic import so Razorpay is never instantiated at build time
+    const Razorpay = (await import("razorpay")).default;
+    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
+
+    const sub = await (razorpay.subscriptions as any).create({
       plan_id:     planId,
       total_count: 12,
       quantity:    1,
       notify_info: { notify_email: user.email! },
-    } as any);
+    });
 
-    // Save pending subscription to DB
     await supabase.from("subscriptions").upsert({
       user_id:                  user.id,
       razorpay_subscription_id: sub.id,
-      status:                   "trial",   // webhook will flip to "active" on first charge
+      status:                   "trial",
     }, { onConflict: "user_id" });
 
     return NextResponse.json({ subscription_id: sub.id, email: user.email });
   } catch (err: any) {
-    console.error("Razorpay subscription error:", err);
+    console.error("Razorpay error:", err);
     return NextResponse.json({ error: err?.error?.description ?? err.message ?? "Failed" }, { status: 500 });
   }
 }
