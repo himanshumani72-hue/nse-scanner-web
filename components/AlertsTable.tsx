@@ -11,13 +11,13 @@ function tv(symbol: string) {
   return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
 }
 
-function pct(v: string | number | undefined) {
-  if (v === undefined || v === "") return null;
+function pct(v: string | number | boolean | undefined | null) {
+  if (v === undefined || v === null || v === "") return null;
   const n = parseFloat(String(v));
   return isNaN(n) ? null : n;
 }
 
-function ColorNum({ v, prefix = "₹", suffix = "" }: { v?: string|number; prefix?: string; suffix?: string }) {
+function ColorNum({ v, prefix = "₹", suffix = "" }: { v?: string|number|boolean|null; prefix?: string; suffix?: string }) {
   const n = pct(v);
   if (n === null) return <span className="text-slate-500">—</span>;
   const color = n > 0 ? "text-green-400" : n < 0 ? "text-red-400" : "text-slate-300";
