@@ -17,10 +17,17 @@ export default function LoginPage() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true); setError("");
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password: pass });
-    if (err) { setError(err.message); setLoading(false); return; }
-    router.push("/dashboard");
-    router.refresh();
+    try {
+      const { data, error: err } = await supabase.auth.signInWithPassword({ email, password: pass });
+      if (err) { setError(err.message); setLoading(false); return; }
+      if (data.session) {
+        window.location.href = "/dashboard";
+      } else {
+        setError("Login failed — please try again."); setLoading(false);
+      }
+    } catch (e: any) {
+      setError(e.message ?? "Something went wrong"); setLoading(false);
+    }
   }
 
   return (
