@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,7 +18,6 @@ export async function POST() {
     if (!planId)
       return NextResponse.json({ error: "RAZORPAY_PLAN_ID not configured" }, { status: 503 });
 
-    // Dynamic import so Razorpay is never instantiated at build time
     const Razorpay = (await import("razorpay")).default;
     const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
 
