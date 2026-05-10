@@ -9,7 +9,7 @@ function SectionHeader({ emoji, title }: { emoji: string; title: string }) {
   );
 }
 
-export default function MarketOverview({ data, panelsData }: { data?: any; panelsData?: any }) {
+export default function MarketOverview({ data, panelsData, hideRanking }: { data?: any; panelsData?: any; hideRanking?: boolean }) {
   if (!data && !panelsData) return (
     <div className="card p-16 text-center">
       <div className="text-4xl mb-4">📊</div>
@@ -51,8 +51,8 @@ export default function MarketOverview({ data, panelsData }: { data?: any; panel
         </div>
       )}
 
-      {/* ── Probability Ranking ── */}
-      {ranking.length > 0 && (
+      {/* ── Probability Ranking (hidden here — shown in its own tab) ── */}
+      {ranking.length > 0 && !hideRanking && (
         <div className="card p-4">
           <SectionHeader emoji="🏆" title="Final Probability Ranking — Composite Score" />
           <div className="overflow-x-auto">
@@ -89,8 +89,8 @@ export default function MarketOverview({ data, panelsData }: { data?: any; panel
         </div>
       )}
 
-      {/* ── Trade Watchlist ── */}
-      {watchlist.length > 0 && (
+      {/* ── Trade Watchlist (hidden here — shown in its own tab) ── */}
+      {watchlist.length > 0 && !hideRanking && (
         <div className="card p-4">
           <SectionHeader emoji="📋" title="Trade Watchlist — ATR-Based Entry / Target / Stop Loss" />
           <div className="overflow-x-auto">
