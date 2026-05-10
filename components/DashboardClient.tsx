@@ -17,11 +17,12 @@ interface Props {
   chartPatterns: Alert[];
   wPatterns:     Alert[];
   marketData?:   any;
+  panelsData?:   any;
 }
 
 type Tab = "movers" | "patterns" | "wpattern" | "market";
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, marketData }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, marketData, panelsData }: Props) {
   const [tab,         setTab]        = useState<Tab>("movers");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
@@ -90,10 +91,20 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
               </span>
             </div>
 
-            {/* Trial badge */}
-            {subStatus === "trial" && daysLeft !== null && (
+            {/* Trial/Subscribe badge */}
+            {subStatus === "trial" && daysLeft !== null && daysLeft > 5 && (
               <Link href="/billing" className="hidden md:flex items-center gap-1.5 bg-yellow-900/30 border border-yellow-700/30 text-yellow-400 text-xs px-3 py-1.5 rounded-lg hover:border-yellow-500/50 transition-colors">
                 <CreditCard size={13} /> {daysLeft}d trial left
+              </Link>
+            )}
+            {subStatus === "trial" && daysLeft !== null && daysLeft <= 5 && (
+              <Link href="/billing" className="hidden md:flex items-center gap-1.5 bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold animate-pulse">
+                <CreditCard size={13} /> {daysLeft}d left — Subscribe ₹99
+              </Link>
+            )}
+            {(subStatus === "expired" || subStatus === "cancelled" || subStatus === "halted") && (
+              <Link href="/billing" className="hidden md:flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors">
+                <CreditCard size={13} /> Subscribe — ₹99/month
               </Link>
             )}
 
@@ -153,7 +164,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         </div>
 
         {/* ── Table ── */}
-        {tab === "market" ? <MarketOverview data={marketData} /> : <AlertsTable alerts={currentAlerts} scanType={tab} />}
+        {tab === "market" ? <MarketOverview data={marketData} panelsData={panelsData} /> : <AlertsTable alerts={currentAlerts} scanType={tab} />}
       </main>
     </div>
   );

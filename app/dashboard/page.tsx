@@ -30,6 +30,14 @@ export default async function DashboardPage() {
     .single();
   const marketData = metaRow?.data ?? null;
 
+  // Fetch panels data (probability ranking, falling stocks, watchlist)
+  const { data: panelsRow } = await supabase
+    .from("dashboard_meta")
+    .select("data")
+    .eq("id", 2)
+    .single();
+  const panelsData = panelsRow?.data ?? null;
+
   // Days left in trial
   let daysLeft: number | null = null;
   if (sub?.status === "trial" && sub.trial_end) {
@@ -47,6 +55,7 @@ export default async function DashboardPage() {
       chartPatterns={chartPat}
       wPatterns={wPattern}
       marketData={marketData}
+      panelsData={panelsData}
     />
   );
 }
