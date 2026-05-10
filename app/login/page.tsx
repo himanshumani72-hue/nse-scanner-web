@@ -20,13 +20,14 @@ export default function LoginPage() {
     try {
       const { data, error: err } = await supabase.auth.signInWithPassword({ email, password: pass });
       if (err) { setError(err.message); setLoading(false); return; }
-      if (data.session) {
-        window.location.href = "/dashboard";
+      if (data?.session) {
+        window.location.replace("/dashboard");
       } else {
-        setError("Login failed — please try again."); setLoading(false);
+        setError("No session returned — check your Supabase URL and anon key in Vercel env vars.");
+        setLoading(false);
       }
     } catch (e: any) {
-      setError(e.message ?? "Something went wrong"); setLoading(false);
+      setError(e?.message ?? "Network error — check console"); setLoading(false);
     }
   }
 
