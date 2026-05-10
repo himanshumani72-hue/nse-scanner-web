@@ -3,17 +3,41 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── CSS Variables ── */
+:root, [data-theme="dark"] {
+  --bg:        #0a0f1e;
+  --card:      #0f172a;
+  --border:    #1e293b;
+  --muted:     #334155;
+  --text:      #f1f5f9;
+  --textmuted: #94a3b8;
+  --header-bg: #060d1a;
+}
+
+[data-theme="light"] {
+  --bg:        #f1f5f9;
+  --card:      #ffffff;
+  --border:    #e2e8f0;
+  --muted:     #cbd5e1;
+  --text:      #0f172a;
+  --textmuted: #64748b;
+  --header-bg: #ffffff;
+}
+
 * { box-sizing: border-box; }
+
 body {
-  background-color: #0a0f1e;
-  color: #f1f5f9;
+  background-color: var(--bg);
+  color: var(--text);
   font-family: Inter, system-ui, sans-serif;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .card {
-  background-color: #0f172a;
-  border: 1px solid #1e293b;
+  background-color: var(--card);
+  border: 1px solid var(--border);
   border-radius: 0.75rem;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
 .badge-bull {
@@ -26,6 +50,11 @@ body {
   display: inline-block;
 }
 
+[data-theme="light"] .badge-bull {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
 .badge-bear {
   background-color: rgba(127, 29, 29, 0.4);
   color: #f87171;
@@ -34,6 +63,11 @@ body {
   border-radius: 9999px;
   font-weight: 500;
   display: inline-block;
+}
+
+[data-theme="light"] .badge-bear {
+  background-color: #fee2e2;
+  color: #dc2626;
 }
 
 .badge-gold {
@@ -46,6 +80,11 @@ body {
   display: inline-block;
 }
 
+[data-theme="light"] .badge-gold {
+  background-color: #fef9c3;
+  color: #a16207;
+}
+
 .badge-blue {
   background-color: rgba(30, 58, 138, 0.4);
   color: #60a5fa;
@@ -56,25 +95,21 @@ body {
   display: inline-block;
 }
 
-.tab-active {
-  background-color: #2563eb;
-  color: #ffffff;
+[data-theme="light"] .badge-blue {
+  background-color: #dbeafe;
+  color: #1d4ed8;
 }
 
-.tab-idle {
-  color: #94a3b8;
-}
-.tab-idle:hover {
-  color: #ffffff;
-  background-color: #1e293b;
-}
+.tab-active { background-color: #2563eb; color: #ffffff; }
+.tab-idle   { color: var(--textmuted); }
+.tab-idle:hover { color: var(--text); background-color: var(--muted); }
 
 /* Scrollbar */
 ::-webkit-scrollbar       { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0f172a; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-track { background: var(--card); }
+::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
 
-/* Pulse animation for live indicator */
+/* Live pulse */
 @keyframes live-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.5; transform: scale(1.2); }

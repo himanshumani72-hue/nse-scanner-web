@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { TrendingUp, Zap, BarChart2, Clock, LogOut, CreditCard, RefreshCw } from "lucide-react";
+import { TrendingUp, Zap, BarChart2, Clock, LogOut, CreditCard, RefreshCw, Sun, Moon } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "@/components/ThemeProvider";
 import type { Alert } from "@/lib/types";
 import AlertsTable from "./AlertsTable";
 
@@ -26,6 +27,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
   const supabase = createClient();
+  const { theme, toggle } = useTheme();
 
   useEffect(() => {
     // Real-time subscription — auto-updates when scanner runs
@@ -93,6 +95,9 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
             )}
 
             <span className="text-slate-500 text-sm hidden md:inline">{userEmail}</span>
+            <button onClick={toggle} className="text-slate-500 hover:text-slate-300 p-1.5 rounded-lg hover:bg-slate-800 transition-colors" title="Toggle theme">
+              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
             <button onClick={handleSignOut} className="text-slate-500 hover:text-slate-300 p-1.5 rounded-lg hover:bg-slate-800 transition-colors">
               <LogOut size={16} />
             </button>
