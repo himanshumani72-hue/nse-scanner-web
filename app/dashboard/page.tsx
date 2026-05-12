@@ -19,7 +19,7 @@ export default async function DashboardPage() {
 
   const bigMovers    = alerts?.filter(a => a.scan_type === "BIG_MOVERS")    ?? [];
   const chartPat     = alerts?.filter(a => a.scan_type === "CHART_PATTERN") ?? [];
-  const wPattern     = alerts?.filter(a => a.scan_type === "W_PATTERN_5M")  ?? [];
+  const wPattern     = alerts?.filter(a => a.scan_type === "W_PATTERN_15M" || a.scan_type === "W_PATTERN_5M") ?? [];
   const lastScan     = alerts?.[0]?.scanned_at ?? null;
 
   // Fetch market overview data

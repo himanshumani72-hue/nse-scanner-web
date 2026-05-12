@@ -7,6 +7,7 @@ import PulseDot from "./ui/PulseDot";
 import ProfileDropdown from "./ProfileDropdown";
 import BigMoversView from "./views/BigMoversView";
 import CupHandleView from "./views/CupHandleView";
+import WPatternView from "./views/WPatternView";
 import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
 import Link from "next/link";
@@ -24,12 +25,13 @@ interface Props {
   panelsData?:   any;
 }
 
-type Tab = "overview" | "movers" | "patterns" | "ranking";
+type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking";
 
 const ICONS = {
   Globe:   () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="6" cy="6" r="4.5"/><path d="M1.5 6 H10.5"/><path d="M6 1.5 a6 5 0 0 1 0 9 a6 5 0 0 1 0 -9"/></svg>,
   Bolt:    () => <svg width={12} height={12} viewBox="0 0 12 12" fill="currentColor"><path d="M6.8 1 L2.5 6.6 H5.6 L4.4 11 L9.2 5.2 H6.4 L7.5 1 Z"/></svg>,
   Pattern: () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 6 Q3 9 5 9 Q7 9 8.5 6 L8.5 4 L11 6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  W:       () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 3 L3.5 9 L5 5 L7 9 L9 5 L10.5 9" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   Trophy:  () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M3 2 H9 V5 a3 3 0 0 1 -6 0 Z" strokeLinejoin="round"/><path d="M3 3 H1.5 V4.2 a1.5 1.5 0 0 0 1.5 1.5"/><path d="M9 3 H10.5 V4.2 a1.5 1.5 0 0 1 -1.5 1.5"/><path d="M4.5 8 H7.5 L8 10.5 H4 Z" strokeLinejoin="round"/></svg>,
   Down:    () => <svg width={10} height={10} viewBox="0 0 10 10"><path d="M5 9 L9 2 L1 2 Z" fill="currentColor"/></svg>,
   Search:  () => <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6" cy="6" r="4.25"/><path d="M9.5 9.5 L12.5 12.5" strokeLinecap="round"/></svg>,
@@ -39,6 +41,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
+  const [wPats,       setWPats]      = useState<Alert[]>(wPatterns);
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
   const [clock,       setClock]      = useState("");
@@ -63,8 +66,10 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         setLastUpdated(a.scanned_at);
         setIsLive(true);
         setTimeout(() => setIsLive(false), 5000);
-        if (a.scan_type === "BIG_MOVERS")    setMovers(prev  => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
-        if (a.scan_type === "CHART_PATTERN") setPatterns(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "BIG_MOVERS")     setMovers(prev   => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "CHART_PATTERN")  setPatterns(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "W_PATTERN_15M" || a.scan_type === "W_PATTERN_5M")
+          setWPats(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
@@ -80,6 +85,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "overview", label: "Market Overview", icon: ICONS.Globe,   count: null },
     { id: "movers",   label: "Big Movers",      icon: ICONS.Bolt,    count: movers.length },
     { id: "patterns", label: "Cup & Handle",    icon: ICONS.Pattern, count: patterns.length },
+    { id: "wpattern", label: "W-Pattern 15m",   icon: ICONS.W,       count: wPats.length },
     { id: "ranking",  label: "Probability",     icon: ICONS.Trophy,  count: panelsData?.ranking?.length ?? null },
   ];
 
@@ -203,6 +209,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "overview"  && <MarketOverview data={marketData} panelsData={panelsData} hideRanking />}
           {tab === "movers"    && <BigMoversView   alerts={movers} />}
           {tab === "patterns"  && <CupHandleView   alerts={patterns} />}
+          {tab === "wpattern"  && <WPatternView    alerts={wPats} />}
           {tab === "ranking"   && <RankingTable     panelsData={panelsData} />}
         </main>
 
