@@ -51,12 +51,26 @@ function MoverCard({ a }: { a: Alert }) {
         <Stat label="Qty"        value={String(d["Qty"] ?? "—")} />
         <Stat label="Risk ₹"     value={`₹${d["Risk ₹"] ?? "—"}`}    color="var(--warn)" />
       </div>
-      {/* Catalyst */}
-      {d["Top Catalyst"] && (
-        <p style={{ margin: 0, fontSize: 11, color: "var(--ink-3)", lineHeight: 1.45, borderTop: "1px solid var(--line)", paddingTop: 8 }}>
-          {String(d["Top Catalyst"]).slice(0, 80)}
-        </p>
-      )}
+      {/* Why this stock — full reason breakdown */}
+      <div style={{ borderTop: "1px solid var(--line)", paddingTop: 10, display: "flex", flexDirection: "column", gap: 5 }}>
+        {String(d["Trigger Reason"] ?? "").split("|").filter(Boolean).map((part, i) => {
+          const s = part.trim();
+          const isWarning = s.startsWith("⚠️");
+          const isPrimary = i === 0;
+          return (
+            <p key={i} style={{ margin: 0, fontSize: isPrimary ? 11.5 : 10.5,
+              color: isWarning ? "var(--warn)" : isPrimary ? "var(--ink-1)" : "var(--ink-3)",
+              lineHeight: 1.4, fontWeight: isPrimary ? 500 : 400 }}>
+              {s}
+            </p>
+          );
+        })}
+        {d["Top Catalyst"] && !String(d["Trigger Reason"] ?? "").includes("📰") && (
+          <p style={{ margin: 0, fontSize: 10.5, color: "var(--ink-4)", lineHeight: 1.4, fontStyle: "italic" }}>
+            {String(d["Top Catalyst"]).slice(0, 100)}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
