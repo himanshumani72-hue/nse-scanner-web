@@ -11,7 +11,7 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
     </div>
   );
 
-  const COL = "minmax(40px,auto) minmax(130px,1.5fr) 70px 70px 70px 80px 90px 80px 100px";
+  const COL = "minmax(40px,auto) minmax(130px,1.2fr) 60px 60px 60px 70px 80px 70px 90px minmax(200px,2fr)";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -24,7 +24,7 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
         <div style={{ overflowX: "auto" }}>
           {/* Header */}
           <div style={{ display: "grid", gridTemplateColumns: COL, gap: 12, padding: "8px 12px", color: "var(--ink-3)", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.10em", background: "var(--bg-2)", borderRadius: 8, marginBottom: 4 }}>
-            {["Rank","Stock","Macro","Sector","Event","Seasonal","Statistical","Technical","Final Score"].map(h => (
+            {["Rank","Stock","Macro","Sector","Event","Seasonal","Statistical","Technical","Final Score","Reason / Catalyst"].map(h => (
               <span key={h}>{h}</span>
             ))}
           </div>
@@ -47,7 +47,24 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
                 <span className="num" style={{ color: "var(--ink-2)", fontSize: 13 }}>{r.Seasonal}</span>
                 <span className="num" style={{ color: "var(--ink-2)", fontSize: 13 }}>{r.Statistical}</span>
                 <span className="num" style={{ color: "var(--up)", fontWeight: 600, fontSize: 13 }}>{r.Technical}</span>
-                <span className="num" style={{ fontWeight: 700, fontSize: 16, color: fsColor, background: fsBg, padding: "2px 10px", borderRadius: 8, display: "inline-block" }}>{fs}</span>
+                    <span className="num" style={{ fontWeight: 700, fontSize: 16, color: fsColor, background: fsBg, padding: "2px 10px", borderRadius: 8, display: "inline-block" }}>{fs}</span>
+                    {/* Reason / Catalyst */}
+                    <div style={{ fontSize: 11, lineHeight: 1.4 }}>
+                      {r["Reason"] && r["Reason"] !== "Technical momentum" ? (
+                        <span style={{ color: "var(--ink-1)" }}>{String(r["Reason"]).slice(0, 100)}</span>
+                      ) : r["Top News"] ? (
+                        <span style={{ color: "var(--ink-3)" }}>{String(r["Top News"]).slice(0, 70)}</span>
+                      ) : (
+                        <span style={{ color: "var(--ink-4)" }}>Technical momentum</span>
+                      )}
+                      {r["Fundamental"] && (
+                        <span style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 4, fontSize: 10,
+                          background: r["Fundamental"] === "Strong" ? "rgba(43,208,122,.15)" : r["Fundamental"] === "Moderate" ? "rgba(243,181,74,.15)" : "transparent",
+                          color: r["Fundamental"] === "Strong" ? "var(--up)" : r["Fundamental"] === "Moderate" ? "var(--warn)" : "var(--ink-4)" }}>
+                          {r["Fundamental"]}
+                        </span>
+                      )}
+                    </div>
               </div>
             );
           })}
