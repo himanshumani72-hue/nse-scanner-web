@@ -1,8 +1,13 @@
 "use client";
 
+function tv(symbol: string) {
+  return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
+}
+
 export default function RankingTable({ panelsData }: { panelsData?: any }) {
-  const ranking   = panelsData?.ranking   || [];
+  const ranking  = panelsData?.ranking   || [];
   const watchlist = panelsData?.watchlist || [];
+  const nextDay  = panelsData?.next_day  || [];
 
   if (!panelsData) return (
     <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, padding: 64, textAlign: "center" }}>
@@ -101,6 +106,70 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ── Next Day Big Movers Prediction ── */}
+      {nextDay.length > 0 && (
+        <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, padding: 20 }}>
+          <h2 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 600, color: "var(--ink-0)" }}>
+            🔮 Next Day Potential Movers
+          </h2>
+          <p style={{ margin: "0 0 16px", fontSize: 11, color: "var(--ink-3)" }}>
+            EOD signals suggesting big move tomorrow · Volume surge + breakout zone + MACD building + pre-result run
+          </p>
+
+          <div style={{ overflowX: "auto" }}>
+            {/* Header */}
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(120px,1.3fr) 80px 70px 70px 60px 80px 80px 70px minmax(200px,2fr)", gap: 12, padding: "8px 12px", color: "var(--ink-3)", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.10em", background: "var(--bg-2)", borderRadius: 8, marginBottom: 4 }}>
+              {["Symbol","LTP","Today Vol","5D Chg","RSI","52W High","MACD","Score","Why Tomorrow"].map(h => (
+                <span key={h}>{h}</span>
+              ))}
+            </div>
+
+            {nextDay.map((n: any, i: number) => {
+              const score = parseInt(n.Score) || 0;
+              const scoreBg    = score >= 70 ? "rgba(43,208,122,.15)" : score >= 55 ? "rgba(243,181,74,.12)" : "transparent";
+              const scoreColor = score >= 70 ? "var(--up)" : score >= 55 ? "var(--warn)" : "var(--ink-2)";
+              const rsi = parseFloat(n.RSI) || 50;
+              const hi  = parseFloat(n["% from 52W High"]) || -50;
+              const isPreResult = String(n["Why Tomorrow"]).includes("Results");
+
+              return (
+                <div key={i} style={{ display: "grid", gridTemplateColumns: "minmax(120px,1.3fr) 80px 70px 70px 60px 80px 80px 70px minmax(200px,2fr)", gap: 12, padding: "10px 12px", borderRadius: 8, background: i % 2 === 0 ? "var(--bg-2)" : "transparent", cursor: "pointer", transition: "background .12s ease", border: isPreResult ? "1px solid rgba(43,208,122,.2)" : "none" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "var(--bg-2)" : "transparent")}>
+
+                  {/* Symbol */}
+                  <a href={tv(n.Symbol)} target="_blank" rel="noreferrer"
+                    style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
+                    <div style={{ width: 26, height: 26, borderRadius: 5, flexShrink: 0,
+                      background: isPreResult ? "rgba(43,208,122,.15)" : "linear-gradient(135deg,#1a2332,#0f1622)",
+                      border: "1px solid var(--line)", display: "grid", placeItems: "center",
+                      fontSize: 9, fontWeight: 700, color: isPreResult ? "var(--up)" : "var(--ink-2)", fontFamily: "var(--mono)" }}>
+                      {n.Symbol.slice(0,2)}
+                    </div>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: "var(--ink-0)", fontFamily: "var(--mono)" }}>
+                      {n.Symbol}
+                    </span>
+                  </a>
+
+                  <span className="num" style={{ fontSize: 12.5, color: "var(--ink-0)" }}>₹{n.LTP}</span>
+                  <span className="num" style={{ fontSize: 12, fontWeight: 600, color: "var(--up)" }}>{n["Today Vol"]}</span>
+                  <span className="num" style={{ fontSize: 12, color: String(n["5D Change"]).startsWith("+") ? "var(--up)" : "var(--down)" }}>{n["5D Change"]}</span>
+                  <span className="num" style={{ fontSize: 12, color: rsi > 70 ? "var(--warn)" : rsi < 50 ? "var(--ink-3)" : "var(--ink-1)" }}>{n.RSI}</span>
+                  <span className="num" style={{ fontSize: 12, color: hi > -3 ? "var(--up)" : hi > -8 ? "var(--warn)" : "var(--ink-3)" }}>{n["% from 52W High"]}%</span>
+                  <span style={{ fontSize: 11, color: n.MACD === "Building" ? "var(--up)" : "var(--ink-3)" }}>{n.MACD}</span>
+                  <span className="num" style={{ fontWeight: 700, fontSize: 15, color: scoreColor, background: scoreBg, padding: "2px 8px", borderRadius: 6, display: "inline-block" }}>{score}</span>
+                  <span style={{ fontSize: 11, color: "var(--ink-2)", lineHeight: 1.4 }}>{n["Why Tomorrow"]}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <p style={{ margin: "12px 0 0", fontSize: 11, color: "var(--ink-4)", borderTop: "1px solid var(--line)", paddingTop: 10 }}>
+            ⚠️ EOD predictions only. Confirm with 9:15 AM opening momentum before entering. Green border = results announcement tomorrow.
+          </p>
         </div>
       )}
     </div>
