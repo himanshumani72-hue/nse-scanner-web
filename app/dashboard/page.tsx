@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   const bigMovers    = alerts?.filter(a => a.scan_type === "BIG_MOVERS")    ?? [];
   const chartPat     = alerts?.filter(a => a.scan_type === "CHART_PATTERN") ?? [];
   const wPattern     = alerts?.filter(a => a.scan_type === "W_PATTERN_15M" || a.scan_type === "W_PATTERN_5M") ?? [];
-  const lastScan     = alerts?.[0]?.scanned_at ?? null;
+  const alertsLast   = alerts?.[0]?.scanned_at ?? null;
 
   // Fetch market overview data
   const { data: metaRow } = await supabase
@@ -37,6 +37,16 @@ export default async function DashboardPage() {
     .eq("id", 2)
     .single();
   const panelsData = panelsRow?.data ?? null;
+
+  // Last scan: use panel scan_time (updates every run even with 0 alerts)
+  // panel_updater.py writes scan_time in DD/MM/YYYY HH:MM format
+  // Fall back to last alert scanned_at if panels haven't run yet
+  const panelScanTime = panelsRow?.data?.scan_time ?? null;
+  const lastScan = panelScanTime
+    ? new Date(
+        panelScanTime.replace(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2})/, '$3-$2-$1T$4:00+05:30')
+      ).toISOString()
+    : alertsLast;
 
   // Days left in trial
   let daysLeft: number | null = null;
