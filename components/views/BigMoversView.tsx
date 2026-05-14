@@ -4,7 +4,7 @@ import Sparkline, { makeSparkline, seedFromSymbol } from "@/components/ui/Sparkl
 import ConfBar from "@/components/ui/ConfBar";
 import Tag from "@/components/ui/Tag";
 
-function MoverCard({ a }: { a: Alert }) {
+function MoverCard({ a, prime }: { a: Alert; prime?: boolean }) {
   const d = a.data;
   const chg = parseFloat(String(d["Today Chg %"] ?? 0));
   const conf = parseFloat(String(d["Confidence %"] ?? 50));
@@ -13,11 +13,19 @@ function MoverCard({ a }: { a: Alert }) {
   const spark = makeSparkline(36, seed, up ? 0.7 : -0.7, 1.0);
   const color = up ? "var(--up)" : "var(--down)";
   const cat = String(d["Catalyst Type"] ?? "");
+  const pctEma = parseFloat(String(d["% from EMA51"] ?? 999));
+  const hasEmaData = isFinite(pctEma) && Math.abs(pctEma) < 100;
 
   return (
-    <div style={{ background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 14, cursor: "pointer", transition: "border-color .15s ease" }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--line-2)")}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--line)")}>
+    <div style={{
+        background: "var(--bg-2)",
+        border: `1px solid ${prime ? "rgba(43,208,122,.35)" : "var(--line)"}`,
+        borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 14,
+        cursor: "pointer", transition: "border-color .15s ease",
+        boxShadow: prime ? "0 0 0 1px rgba(43,208,122,.10) inset" : "none",
+      }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = prime ? "rgba(43,208,122,.6)" : "var(--line-2)")}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = prime ? "rgba(43,208,122,.35)" : "var(--line)")}>
       {/* Top row */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
         <SymCell sym={a.symbol} name={String(d["Sector"] ?? "")} />
@@ -28,6 +36,26 @@ function MoverCard({ a }: { a: Alert }) {
           <Pct v={chg} />
         </div>
       </div>
+      {/* EMA-51 proximity bar — the key entry signal */}
+      {hasEmaData && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: 8, background: prime ? "rgba(43,208,122,.06)" : "var(--bg-1)", border: `1px solid ${prime ? "rgba(43,208,122,.2)" : "var(--line)"}` }}>
+          <span style={{ fontSize: 10, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>EMA-51</span>
+          <div style={{ flex: 1, height: 4, background: "var(--bg-0)", borderRadius: 2, overflow: "hidden" }}>
+            <div style={{
+              height: "100%", borderRadius: 2,
+              width: `${Math.min(100, Math.abs(pctEma) * 5)}%`,
+              background: pctEma >= 0 && pctEma <= 5 ? "var(--up)" : pctEma > 5 ? "var(--accent-2)" : "var(--down)",
+              transition: "width .3s ease"
+            }} />
+          </div>
+          <span className="num" style={{ fontSize: 11, fontWeight: 600, flexShrink: 0, color: pctEma >= 0 && pctEma <= 5 ? "var(--up)" : pctEma > 0 ? "var(--ink-2)" : "var(--down)" }}>
+            {pctEma >= 0 ? "+" : ""}{pctEma.toFixed(1)}% {pctEma >= 0 && pctEma <= 5 ? "⭐" : ""}
+          </span>
+          <span style={{ fontSize: 9.5, color: "var(--ink-4)", flexShrink: 0 }}>
+            ₹{String(d["EMA51"] ?? "—")}
+          </span>
+        </div>
+      )}
       {/* Sparkline */}
       <div style={{ width: "100%" }}>
         <Sparkline data={spark} w={320} h={48} color={color} stroke={1.5} />
@@ -79,12 +107,54 @@ export default function BigMoversView({ alerts }: { alerts: Alert[] }) {
   if (!alerts.length) return (
     <Empty msg="No Big Mover alerts today. Scanner runs at 9:20 AM & 3:00 PM IST." />
   );
+
+  // Split: near-EMA-51 setups (0–5% above EMA with catalyst) vs rest
+  const primeSetups = alerts.filter(a => {
+    const pct = parseFloat(String(a.data["% from EMA51"] ?? 999));
+    const news = parseFloat(String(a.data["News Score"] ?? 0));
+    return pct >= 0 && pct <= 5 && (news > 0 || String(a.data["Near EMA51"]) === "YES");
+  });
+  const others = alerts.filter(a => !primeSetups.includes(a));
+
   return (
-    <div style={{ display: "grid", gap: 24 }}>
-      <SectionHdr icon="⚡" title="Big Mover Alerts" count={alerts.length} hint="Volume surge + catalyst • intraday & swing" />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 12 }}>
-        {alerts.map(a => <MoverCard key={a.id} a={a} />)}
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+
+      {/* ── Prime section: Near EMA-51 + Catalyst ── */}
+      {primeSetups.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <h3 style={{ margin: 0, fontSize: 12, fontWeight: 600, letterSpacing: "0.10em", textTransform: "uppercase", color: "var(--up)" }}>
+              ⭐ Near EMA-51 + Catalyst — Highest Conviction Entries
+            </h3>
+            <span className="num" style={{ fontSize: 11, color: "var(--up)", padding: "2px 7px", border: "1px solid rgba(43,208,122,.4)", borderRadius: 999, background: "rgba(43,208,122,.08)" }}>{primeSetups.length}</span>
+            <span style={{ fontSize: 11, color: "var(--ink-3)" }}>Price 0–5% above EMA-51 · momentum just starting · catalyst confirmed</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 12 }}>
+            {primeSetups.map(a => <MoverCard key={a.id} a={a} prime />)}
+          </div>
+        </div>
+      )}
+
+      {/* ── Regular movers ── */}
+      {others.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <SectionHdr
+            icon="⚡"
+            title={primeSetups.length > 0 ? "Other Big Mover Alerts" : "Big Mover Alerts"}
+            count={others.length}
+            hint="Volume surge + catalyst • intraday & swing"
+          />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 12 }}>
+            {others.map(a => <MoverCard key={a.id} a={a} />)}
+          </div>
+        </div>
+      )}
+
+      {primeSetups.length === 0 && (
+        <div style={{ padding: "10px 14px", background: "rgba(43,208,122,.04)", border: "1px dashed rgba(43,208,122,.2)", borderRadius: 10, fontSize: 12, color: "var(--ink-3)" }}>
+          ⭐ No stocks in the EMA-51 prime zone today (0–5% above EMA-51 with catalyst). Check tomorrow's morning scan.
+        </div>
+      )}
     </div>
   );
 }
