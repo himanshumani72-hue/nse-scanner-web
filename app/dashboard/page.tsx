@@ -10,7 +10,8 @@ export default async function DashboardPage() {
   const { data: sub }       = await supabase.from("subscriptions").select("*").eq("user_id", user!.id).single();
 
   // Fetch today's alerts for all scan types
-  const today = new Date().toISOString().split("T")[0];
+  // Use IST date (UTC+5:30) — scanner runs on IST machine and writes IST scan_date
+  const today = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().split("T")[0];
   const { data: alerts = [] } = await supabase
     .from("alerts")
     .select("*")
