@@ -17,9 +17,11 @@ export default async function DashboardPage() {
     .eq("scan_date", today)
     .order("scanned_at", { ascending: false });
 
-  const bigMovers    = alerts?.filter(a => a.scan_type === "BIG_MOVERS")    ?? [];
-  const chartPat     = alerts?.filter(a => a.scan_type === "CHART_PATTERN") ?? [];
+  const bigMovers    = alerts?.filter(a => a.scan_type === "BIG_MOVERS")       ?? [];
+  const chartPat     = alerts?.filter(a => a.scan_type === "CHART_PATTERN")    ?? [];
   const wPattern     = alerts?.filter(a => a.scan_type === "W_PATTERN_15M" || a.scan_type === "W_PATTERN_5M") ?? [];
+  const cannon       = alerts?.filter(a => a.scan_type === "CANNON_MOMENTUM")  ?? [];
+  const boomerang    = alerts?.filter(a => a.scan_type === "BOOMERANG_REVERSAL") ?? [];
   const alertsLast   = alerts?.[0]?.scanned_at ?? null;
 
   // Fetch market overview data
@@ -64,6 +66,8 @@ export default async function DashboardPage() {
       bigMovers={bigMovers}
       chartPatterns={chartPat}
       wPatterns={wPattern}
+      cannonAlerts={cannon}
+      boomerangAlerts={boomerang}
       marketData={marketData}
       panelsData={panelsData}
     />

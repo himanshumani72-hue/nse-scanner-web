@@ -68,40 +68,7 @@ export default function MarketOverview({ data, panelsData, hideRanking }: { data
         </Card>
       )}
 
-      {/* ── 5 Stocks About to Fall ── */}
-      {falling.length > 0 && (
-        <Card style={{ borderColor: "rgba(255,93,108,.25)" }}>
-          <SHdr emoji="🔻" title="5 Stocks About to Fall — Overbought / Distribution Signals" />
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-              <thead>
-                <tr style={{ color: "var(--ink-3)", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.10em" }}>
-                  {["Symbol","Close","RSI","% vs 20DMA","Death Cross","Bear Score","Reason"].map(h => (
-                    <th key={h} style={{ padding: "8px 10px", textAlign: "left", fontWeight: 500 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {falling.map((f: any, i: number) => (
-                  <tr key={i} style={{ background: i % 2 === 0 ? "rgba(255,93,108,.06)" : "transparent" }}>
-                    <td style={{ padding: "10px 10px", fontWeight: 700, color: "var(--down)", fontFamily: "var(--mono)" }}>{f.Symbol}</td>
-                    <td style={{ padding: "10px 10px", fontFamily: "var(--mono)", color: "var(--ink-0)" }}>₹{f.Close}</td>
-                    <td style={{ padding: "10px 10px", fontWeight: 700, color: "var(--down)", fontFamily: "var(--mono)" }}>{f.RSI}</td>
-                    <td style={{ padding: "10px 10px", color: "var(--warn)", fontFamily: "var(--mono)" }}>{f["% vs 20DMA"]}%</td>
-                    <td style={{ padding: "10px 10px" }}>
-                      <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 500, background: f["Death Cross"] === "YES" ? "var(--down-bg)" : "rgba(91,140,255,.10)", color: f["Death Cross"] === "YES" ? "var(--down)" : "var(--accent-2)", border: `1px solid ${f["Death Cross"] === "YES" ? "var(--down-line)" : "rgba(91,140,255,.30)"}` }}>
-                        {f["Death Cross"]}
-                      </span>
-                    </td>
-                    <td style={{ padding: "10px 10px", fontWeight: 700, color: "var(--down)", fontFamily: "var(--mono)", fontSize: 16 }}>{f["Bear Score"]}</td>
-                    <td style={{ padding: "10px 10px", color: "var(--ink-3)", fontSize: 11 }}>{f.Reason}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
+      {/* 5 Stocks About to Fall moved to dedicated "Stocks About to Fall" tab */}
 
       {/* ── Correlation Panel ── */}
       {correlation.length > 0 && (
