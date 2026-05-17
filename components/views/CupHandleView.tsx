@@ -27,7 +27,7 @@ export default function CupHandleView({ alerts }: { alerts: Alert[] }) {
         {/* Table header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "minmax(130px,1.5fr) 80px 80px 70px 70px 70px 80px 70px 70px 100px 140px",
+          gridTemplateColumns: "minmax(130px,1.5fr) 80px 80px 70px 70px 70px 80px minmax(120px,1.5fr) 70px 100px 140px",
           gap: 10, padding: "10px 14px", color: "var(--ink-3)", fontSize: 10.5,
           textTransform: "uppercase", letterSpacing: "0.10em",
           borderBottom: "1px solid var(--line)", background: "var(--bg-2)" }}>
@@ -69,7 +69,7 @@ export default function CupHandleView({ alerts }: { alerts: Alert[] }) {
             <div key={a.id}
               style={{
                 display: "grid",
-                gridTemplateColumns: "minmax(130px,1.5fr) 80px 80px 70px 70px 70px 80px 70px 70px 100px 140px",
+                gridTemplateColumns: "minmax(130px,1.5fr) 80px 80px 70px 70px 70px 80px minmax(120px,1.5fr) 70px 100px 140px",
                 gap: 10, padding: "10px 14px", alignItems: "center",
                 borderBottom: i < alerts.length - 1 ? "1px solid var(--line)" : "none",
                 background: isEven ? "var(--bg-2)" : "transparent",
@@ -126,11 +126,11 @@ export default function CupHandleView({ alerts }: { alerts: Alert[] }) {
                 {rec.toFixed(0)}%
               </span>
 
-              {/* News */}
-              <span style={{ textAlign: "right" }}>
+              {/* News — show actual headline, not just a score number */}
+              <span style={{ fontSize: 10.5, color: news > 0 ? "var(--accent-2)" : "var(--ink-4)", lineHeight: 1.35 }}>
                 {news > 0
-                  ? <Tag tone="up">+{news}</Tag>
-                  : <span style={{ color: "var(--ink-4)", fontSize: 11 }}>—</span>}
+                  ? String(d["Top Headline"] ?? d["Top Catalyst"] ?? d["Top News"] ?? "News signal").slice(0, 50)
+                  : "—"}
               </span>
 
               {/* Fundamental */}

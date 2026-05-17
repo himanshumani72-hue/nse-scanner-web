@@ -79,19 +79,24 @@ function MoverCard({ a, prime }: { a: Alert; prime?: boolean }) {
         <Stat label="Qty"        value={String(d["Qty"] ?? "—")} />
         <Stat label="Risk ₹"     value={`₹${d["Risk ₹"] ?? "—"}`}    color="var(--warn)" />
       </div>
-      {/* News headline — always shown first and prominently */}
+      {/* News headline — only show real news, not technical descriptions */}
       <div style={{ borderTop: "1px solid var(--line)", paddingTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
-        {/* Actual news headline */}
-        {d["Top Catalyst"] && String(d["Top Catalyst"]).length > 5 ? (
-          <div style={{ padding: "7px 10px", borderRadius: 7, background: "rgba(91,140,255,.07)", border: "1px solid rgba(91,140,255,.18)" }}>
-            <span style={{ fontSize: 9.5, color: "var(--accent-2)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>News · </span>
-            <span style={{ fontSize: 11.5, color: "var(--ink-1)", lineHeight: 1.4 }}>{String(d["Top Catalyst"]).slice(0, 130)}</span>
-          </div>
-        ) : (
-          <div style={{ padding: "6px 10px", borderRadius: 7, background: "rgba(243,181,74,.06)", border: "1px solid rgba(243,181,74,.18)" }}>
-            <span style={{ fontSize: 11, color: "var(--warn)" }}>⚠️ No news catalyst — technical move only. Verify reason on TradingView before buying.</span>
-          </div>
-        )}
+        {(() => {
+          const cat = String(d["Top Catalyst"] ?? "");
+          const newsScore = parseInt(String(d["News Score"] ?? "0"));
+          // "Technical breakout" is NOT news — it's a technical description generated when no news found
+          const isRealNews = newsScore > 0 && cat.length > 5 && !cat.startsWith("Technical breakout");
+          return isRealNews ? (
+            <div style={{ padding: "7px 10px", borderRadius: 7, background: "rgba(91,140,255,.07)", border: "1px solid rgba(91,140,255,.18)" }}>
+              <span style={{ fontSize: 9.5, color: "var(--accent-2)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>News · </span>
+              <span style={{ fontSize: 11.5, color: "var(--ink-1)", lineHeight: 1.4 }}>{cat.slice(0, 130)}</span>
+            </div>
+          ) : (
+            <div style={{ padding: "6px 10px", borderRadius: 7, background: "rgba(243,181,74,.06)", border: "1px solid rgba(243,181,74,.18)" }}>
+              <span style={{ fontSize: 11, color: "var(--warn)" }}>⚠️ No news found — pure technical move. Check TradingView + news before buying.</span>
+            </div>
+          );
+        })()}
         {/* Supporting reasons */}
         {String(d["Trigger Reason"] ?? "").split("|").filter(Boolean).map((part, i) => {
           const s = part.trim();
