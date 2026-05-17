@@ -9,13 +9,25 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   const { data: sub }       = await supabase.from("subscriptions").select("*").eq("user_id", user!.id).single();
 
-  // Fetch today's alerts for all scan types
-  // Use IST date (UTC+5:30) — scanner runs on IST machine and writes IST scan_date
-  const today = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().split("T")[0];
+  // Fetch alerts — use IST date. On weekends/holidays fall back to last 4 days
+  // so Momentum Strategy and other EOD tabs still show Friday's data on Saturday/Sunday.
+  const istNow = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+  const today  = istNow.toISOString().split("T")[0];
+
+  // Try today first, then fall back to most recent date with data (up to 4 days back)
+  const { data: recentAlerts = [] } = await supabase
+    .from("alerts")
+    .select("scan_date")
+    .gte("scan_date", new Date(Date.now() - 4 * 86400000).toISOString().split("T")[0])
+    .order("scan_date", { ascending: false })
+    .limit(1);
+
+  const effectiveDate = recentAlerts?.[0]?.scan_date ?? today;
+
   const { data: alerts = [] } = await supabase
     .from("alerts")
     .select("*")
-    .eq("scan_date", today)
+    .eq("scan_date", effectiveDate)
     .order("scanned_at", { ascending: false });
 
   const bigMovers    = alerts?.filter(a => a.scan_type === "BIG_MOVERS")       ?? [];
