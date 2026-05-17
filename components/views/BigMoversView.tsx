@@ -79,25 +79,31 @@ function MoverCard({ a, prime }: { a: Alert; prime?: boolean }) {
         <Stat label="Qty"        value={String(d["Qty"] ?? "—")} />
         <Stat label="Risk ₹"     value={`₹${d["Risk ₹"] ?? "—"}`}    color="var(--warn)" />
       </div>
-      {/* Why this stock — full reason breakdown */}
-      <div style={{ borderTop: "1px solid var(--line)", paddingTop: 10, display: "flex", flexDirection: "column", gap: 5 }}>
+      {/* News headline — always shown first and prominently */}
+      <div style={{ borderTop: "1px solid var(--line)", paddingTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+        {/* Actual news headline */}
+        {d["Top Catalyst"] && String(d["Top Catalyst"]).length > 5 ? (
+          <div style={{ padding: "7px 10px", borderRadius: 7, background: "rgba(91,140,255,.07)", border: "1px solid rgba(91,140,255,.18)" }}>
+            <span style={{ fontSize: 9.5, color: "var(--accent-2)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>News · </span>
+            <span style={{ fontSize: 11.5, color: "var(--ink-1)", lineHeight: 1.4 }}>{String(d["Top Catalyst"]).slice(0, 130)}</span>
+          </div>
+        ) : (
+          <div style={{ padding: "6px 10px", borderRadius: 7, background: "rgba(243,181,74,.06)", border: "1px solid rgba(243,181,74,.18)" }}>
+            <span style={{ fontSize: 11, color: "var(--warn)" }}>⚠️ No news catalyst — technical move only. Verify reason on TradingView before buying.</span>
+          </div>
+        )}
+        {/* Supporting reasons */}
         {String(d["Trigger Reason"] ?? "").split("|").filter(Boolean).map((part, i) => {
           const s = part.trim();
           const isWarning = s.startsWith("⚠️");
-          const isPrimary = i === 0;
           return (
-            <p key={i} style={{ margin: 0, fontSize: isPrimary ? 11.5 : 10.5,
-              color: isWarning ? "var(--warn)" : isPrimary ? "var(--ink-1)" : "var(--ink-3)",
-              lineHeight: 1.4, fontWeight: isPrimary ? 500 : 400 }}>
+            <p key={i} style={{ margin: 0, fontSize: 10.5,
+              color: isWarning ? "var(--warn)" : i === 0 ? "var(--ink-2)" : "var(--ink-3)",
+              lineHeight: 1.4 }}>
               {s}
             </p>
           );
         })}
-        {d["Top Catalyst"] && !String(d["Trigger Reason"] ?? "").includes("📰") && (
-          <p style={{ margin: 0, fontSize: 10.5, color: "var(--ink-4)", lineHeight: 1.4, fontStyle: "italic" }}>
-            {String(d["Top Catalyst"]).slice(0, 100)}
-          </p>
-        )}
       </div>
     </div>
   );
