@@ -87,8 +87,11 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const fmtTime = (iso: string | null) => {
     if (!iso) return "—";
     const d = new Date(iso);
+    // Add 5.5h offset for IST, then read UTC hours/minutes (which ARE the IST time)
     const ist = new Date(d.getTime() + 5.5 * 3600000);
-    return ist.toISOString().slice(11, 16) + " IST";
+    const hh = String(ist.getUTCHours()).padStart(2, "0");
+    const mm = String(ist.getUTCMinutes()).padStart(2, "0");
+    return `${hh}:${mm} IST`;
   };
 
   const TABS: { id: Tab; label: string; icon: () => JSX.Element; count: number | null }[] = [
@@ -131,8 +134,19 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
 
         {/* Live status */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <PulseDot color={isLive ? "var(--up)" : "var(--accent)"} />
-          <span style={{ fontSize: 12, color: "var(--ink-1)" }}>{isLive ? "Live update!" : "Markets closed"}</span>
+          {(() => {
+            // Compute real market status from IST clock
+            const parts = clock.split(":");
+            if (parts.length >= 2) {
+              const h = parseInt(parts[0]), m = parseInt(parts[1]);
+              const t = h * 60 + m;
+              const isOpen = t >= 9*60+15 && t <= 15*60+30;
+              const dotColor = isLive ? "var(--up)" : isOpen ? "var(--up)" : "var(--ink-3)";
+              const label = isLive ? "Live update!" : isOpen ? "Market open" : "Markets closed";
+              return (<><PulseDot color={dotColor} /><span style={{ fontSize: 12, color: isOpen ? "var(--up)" : "var(--ink-1)" }}>{label}</span></>);
+            }
+            return <><PulseDot color="var(--accent)"/><span style={{ fontSize: 12, color: "var(--ink-1)" }}>Loading…</span></>;
+          })()}
           <span className="num" style={{ fontSize: 11.5, color: "var(--ink-3)" }}>{clock}</span>
         </div>
 
