@@ -10,6 +10,7 @@ import CupHandleView from "./views/CupHandleView";
 import WPatternView from "./views/WPatternView";
 import MomentumView from "./views/MomentumView";
 import AboutToFallView from "./views/AboutToFallView";
+import TurnaroundView from "./views/TurnaroundView";
 import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
 import Link from "next/link";
@@ -23,13 +24,14 @@ interface Props {
   bigMovers:       Alert[];
   chartPatterns:   Alert[];
   wPatterns:       Alert[];
-  cannonAlerts?:   Alert[];
+  cannonAlerts?:    Alert[];
   boomerangAlerts?: Alert[];
+  turnaroundAlerts?: Alert[];
   marketData?:     any;
   panelsData?:     any;
 }
 
-type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking" | "momentum" | "falling";
+type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking" | "momentum" | "falling" | "turnaround";
 
 const ICONS = {
   Globe:   () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="6" cy="6" r="4.5"/><path d="M1.5 6 H10.5"/><path d="M6 1.5 a6 5 0 0 1 0 9 a6 5 0 0 1 0 -9"/></svg>,
@@ -43,13 +45,14 @@ const ICONS = {
   Search:  () => <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6" cy="6" r="4.25"/><path d="M9.5 9.5 L12.5 12.5" strokeLinecap="round"/></svg>,
 };
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], marketData, panelsData }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], marketData, panelsData }: Props) {
   const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
   const [wPats,       setWPats]      = useState<Alert[]>(wPatterns);
   const [momentum,    setMomentum]   = useState<Alert[]>(cannonAlerts);
   const [boomerang,   setBoomerang]  = useState<Alert[]>(boomerangAlerts);
+  const [turnaround,  setTurnaround] = useState<Alert[]>(turnaroundAlerts);
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
   const [clock,       setClock]      = useState("");
@@ -78,8 +81,9 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         if (a.scan_type === "CHART_PATTERN")    setPatterns(prev  => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "W_PATTERN_15M" || a.scan_type === "W_PATTERN_5M")
           setWPats(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
-        if (a.scan_type === "CANNON_MOMENTUM")  setMomentum(prev  => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "CANNON_MOMENTUM")  setMomentum(prev   => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "BOOMERANG_REVERSAL") setBoomerang(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "TURNAROUND")       setTurnaround(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
@@ -99,7 +103,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "movers",    label: "Big Movers",            icon: ICONS.Bolt,    count: movers.length },
     { id: "patterns",  label: "Cup & Handle",          icon: ICONS.Pattern, count: patterns.length },
     { id: "wpattern",  label: "W-Pattern 15m",         icon: ICONS.W,       count: wPats.length },
-    { id: "momentum",  label: "Momentum Strategy",     icon: ICONS.Rocket,  count: momentum.length },
+    { id: "momentum",   label: "Momentum Strategy",     icon: ICONS.Rocket,  count: momentum.length },
+    { id: "turnaround", label: "Turnaround Plays",     icon: ICONS.Pattern, count: turnaround.length || null },
     { id: "falling",   label: "Stocks About to Fall",  icon: ICONS.Danger,  count: (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)) || null },
     { id: "ranking",   label: "Probability",           icon: ICONS.Trophy,  count: panelsData?.ranking?.length ?? null },
   ];
@@ -235,10 +240,11 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "overview"  && <MarketOverview    data={marketData} panelsData={panelsData} hideRanking />}
           {tab === "movers"    && <BigMoversView    alerts={movers} />}
           {tab === "patterns"  && <CupHandleView    alerts={patterns} />}
-          {tab === "wpattern"  && <WPatternView     alerts={wPats} />}
-          {tab === "momentum"  && <MomentumView     alerts={momentum} />}
-          {tab === "falling"   && <AboutToFallView  boomerangAlerts={boomerang} panelsData={panelsData} />}
-          {tab === "ranking"   && <RankingTable     panelsData={panelsData} />}
+          {tab === "wpattern"   && <WPatternView     alerts={wPats} />}
+          {tab === "momentum"   && <MomentumView     alerts={momentum} />}
+          {tab === "turnaround" && <TurnaroundView   alerts={turnaround} />}
+          {tab === "falling"    && <AboutToFallView  boomerangAlerts={boomerang} panelsData={panelsData} />}
+          {tab === "ranking"    && <RankingTable     panelsData={panelsData} />}
         </main>
 
         {/* ── Activity Rail ── */}
