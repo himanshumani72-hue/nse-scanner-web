@@ -86,14 +86,27 @@ function MoverCard({ a, prime }: { a: Alert; prime?: boolean }) {
           const newsScore = parseInt(String(d["News Score"] ?? "0"));
           // "Technical breakout" is NOT news — it's a technical description generated when no news found
           const isRealNews = newsScore > 0 && cat.length > 5 && !cat.startsWith("Technical breakout");
+          const bigMove = chg >= 8;
           return isRealNews ? (
             <div style={{ padding: "7px 10px", borderRadius: 7, background: "rgba(91,140,255,.07)", border: "1px solid rgba(91,140,255,.18)" }}>
               <span style={{ fontSize: 9.5, color: "var(--accent-2)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>News · </span>
               <span style={{ fontSize: 11.5, color: "var(--ink-1)", lineHeight: 1.4 }}>{cat.slice(0, 130)}</span>
             </div>
+          ) : bigMove ? (
+            <div style={{ padding: "7px 10px", borderRadius: 7, background: "rgba(255,93,108,.06)", border: "1px solid rgba(255,93,108,.2)" }}>
+              <span style={{ fontSize: 11, color: "var(--down)", fontWeight: 600 }}>🔍 +{chg.toFixed(1)}% with no visible news — </span>
+              <a href={`https://www.bseindia.com/corporates/ann.aspx?scrip=${a.symbol}&dur=D`} target="_blank" rel="noreferrer"
+                style={{ fontSize: 11, color: "var(--accent-2)", textDecoration: "underline" }}>
+                Check BSE announcements
+              </a>
+              <span style={{ fontSize: 10.5, color: "var(--ink-3)" }}> · Could be bulk deal / promoter buy / hidden event</span>
+            </div>
           ) : (
             <div style={{ padding: "6px 10px", borderRadius: 7, background: "rgba(243,181,74,.06)", border: "1px solid rgba(243,181,74,.18)" }}>
-              <span style={{ fontSize: 11, color: "var(--warn)" }}>⚠️ No news found — pure technical move. Check TradingView + news before buying.</span>
+              <span style={{ fontSize: 11, color: "var(--warn)" }}>⚠️ No news found — technical move only. </span>
+              <a href={`https://www.bseindia.com/corporates/ann.aspx?scrip=${a.symbol}&dur=D`} target="_blank" rel="noreferrer"
+                style={{ fontSize: 10.5, color: "var(--accent-2)" }}>Check BSE</a>
+              <span style={{ fontSize: 10.5, color: "var(--warn)" }}> before buying.</span>
             </div>
           );
         })()}
