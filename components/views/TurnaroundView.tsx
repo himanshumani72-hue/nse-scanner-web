@@ -28,9 +28,21 @@ export default function TurnaroundView({ alerts }: { alerts: Alert[] }) {
     <Empty msg="No Higher-Low Double Bottom patterns found. Scanner runs after market close." />
   );
 
-  // Split: priority sectors first
-  const priority = alerts.filter(a => a.data["Sector Priority"] !== "General");
-  const general  = alerts.filter(a => a.data["Sector Priority"] === "General");
+  // Sort: BUY ZONE first, then WATCH, then by sector priority
+  const sorted = [...alerts].sort((a, b) => {
+    const stageOrder = (s: string) =>
+      s?.includes("BUY ZONE") ? 0 : s?.includes("Early") ? 1 : s?.includes("WATCH") ? 2 : 3;
+    const sa = stageOrder(String(a.data["Stage"] ?? ""));
+    const sb = stageOrder(String(b.data["Stage"] ?? ""));
+    if (sa !== sb) return sa - sb;
+    const pa = a.data["Sector Priority"] !== "General" ? 0 : 1;
+    const pb = b.data["Sector Priority"] !== "General" ? 0 : 1;
+    return pa - pb;
+  });
+
+  const buyZone = sorted.filter(a => String(a.data["Stage"] ?? "").includes("BUY ZONE"));
+  const watching = sorted.filter(a => String(a.data["Stage"] ?? "").includes("WATCH"));
+  const others  = sorted.filter(a => !String(a.data["Stage"] ?? "").includes("BUY ZONE") && !String(a.data["Stage"] ?? "").includes("WATCH"));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -58,21 +70,35 @@ export default function TurnaroundView({ alerts }: { alerts: Alert[] }) {
         </div>
       </div>
 
-      {/* ── Priority sectors ── */}
-      {priority.length > 0 && (
+      {/* ── BUY ZONE — just crossed EMA, momentum starting NOW ── */}
+      {buyZone.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <SectionHdr icon="⭐" title="Priority Sectors — AI · Energy · Oil & Gas · High Growth" count={priority.length}
-            hint="These sectors get first preference — AI, Energy, Oil & Gas, High Growth capex themes" />
-          <StockGrid alerts={priority} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <h3 style={{ margin: 0, fontSize: 12, fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase", color: "var(--up)" }}>
+              🟢 BUY ZONE — Momentum Starting NOW
+            </h3>
+            <span style={{ fontSize: 11, color: "var(--up)", padding: "2px 8px", border: "1px solid rgba(43,208,122,.4)", borderRadius: 999, background: "rgba(43,208,122,.08)" }}>{buyZone.length}</span>
+            <span style={{ fontSize: 11, color: "var(--ink-3)" }}>Just crossed EMA-51 · Pattern complete · Recovery 5–30%</span>
+          </div>
+          <StockGrid alerts={buyZone} />
         </div>
       )}
 
-      {/* ── General ── */}
-      {general.length > 0 && (
+      {/* ── Early stage ── */}
+      {others.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <SectionHdr icon="📐" title={priority.length > 0 ? "Other Sectors" : "Higher-Low Double Bottom Patterns"} count={general.length}
-            hint="Turnaround patterns in other sectors" />
-          <StockGrid alerts={general} />
+          <SectionHdr icon="🟡" title="Early Stage — Above EMA, Momentum Building" count={others.length}
+            hint="Pattern confirmed but slightly extended — valid entry with tighter stop" />
+          <StockGrid alerts={others} />
+        </div>
+      )}
+
+      {/* ── Watch list — approaching EMA ── */}
+      {watching.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionHdr icon="🔵" title="WATCH LIST — Approaching EMA-51" count={watching.length}
+            hint="Pattern formed, approaching EMA-51 — wait for confirmed break above EMA before buying" />
+          <StockGrid alerts={watching} />
         </div>
       )}
 
@@ -103,13 +129,16 @@ function StockCard({ a }: { a: Alert }) {
   const todayChg = parseFloat(String(d["Today Chg %"] ?? 0));
   const score    = parseInt(String(d["Score"] ?? 0));
   const isPrime  = sector !== "General";
+  const stage    = String(d["Stage"] ?? "");
+  const isBuyZone = stage.includes("BUY ZONE");
+  const isWatch   = stage.includes("WATCH");
 
   return (
     <div style={{
       background: "var(--bg-1)",
-      border: `1px solid ${isPrime ? `${sColor}40` : "var(--line)"}`,
+      border: `1px solid ${isBuyZone ? "rgba(43,208,122,.4)" : isPrime ? `${sColor}40` : "var(--line)"}`,
       borderRadius: 14, padding: 16, display: "flex", flexDirection: "column", gap: 12,
-      boxShadow: isPrime ? `0 0 0 1px ${sColor}15 inset` : "none",
+      boxShadow: isBuyZone ? "0 0 0 1px rgba(43,208,122,.12) inset" : isPrime ? `0 0 0 1px ${sColor}15 inset` : "none",
     }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
