@@ -210,7 +210,6 @@ export default function MarketOverview({ data, panelsData, hideRanking }: { data
               const pctEma = parseFloat(String(s["% from EMA51"] ?? 99));
               const isGoodEma = isFinite(pctEma) && pctEma < 50;
               const emaColor = pctEma <= 3 ? "var(--up)" : pctEma <= 7 ? "var(--accent-2)" : "var(--ink-3)";
-              const mcLink = `https://www.moneycontrol.com/news/tags/${s.Symbol?.toLowerCase()}/`;
               const catalyst = String(s["Catalyst"] || s["Why Buy"] || "");
               return (
                 <div key={i} style={{
@@ -226,16 +225,10 @@ export default function MarketOverview({ data, panelsData, hideRanking }: { data
                   </div>
                   {/* Symbol + links */}
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <a href={`https://www.tradingview.com/chart/?symbol=NSE:${s.Symbol}`} target="_blank" rel="noreferrer"
-                        style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "var(--ink-0)", textDecoration: "none" }}>
-                        {s.Symbol}
-                      </a>
-                      <a href={mcLink} target="_blank" rel="noreferrer"
-                        style={{ fontSize: 9.5, color: "var(--accent-2)", padding: "1px 5px", border: "1px solid rgba(91,140,255,.3)", borderRadius: 4, textDecoration: "none", background: "rgba(91,140,255,.08)" }}>
-                        MC News
-                      </a>
-                    </div>
+                    <a href={`https://www.tradingview.com/chart/?symbol=NSE:${s.Symbol}`} target="_blank" rel="noreferrer"
+                      style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "var(--ink-0)", textDecoration: "none" }}>
+                      {s.Symbol}
+                    </a>
                     <div style={{ display: "flex", gap: 5, marginTop: 3, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 9.5, fontWeight: 700, padding: "1px 6px", borderRadius: 999, background: `${convColor}20`, color: convColor, border: `1px solid ${convColor}40` }}>{conv}</span>
                       {isGoodEma && <span style={{ fontSize: 9.5, color: emaColor, padding: "1px 6px", border: `1px solid ${emaColor}40`, borderRadius: 999, background: `${emaColor}15` }}>EMA {pctEma >= 0 ? "+" : ""}{pctEma}%</span>}
@@ -258,11 +251,17 @@ export default function MarketOverview({ data, panelsData, hideRanking }: { data
                     <div className="num" style={{ fontSize: 11, color: "var(--up)" }}>₹{s["Target 1"] || "—"}</div>
                     <div className="num" style={{ fontSize: 10, color: "var(--ink-3)" }}>₹{s["Target 2"] || ""}</div>
                   </div>
-                  <div style={{ fontSize: 10.5, color: "var(--ink-2)", lineHeight: 1.5 }}>
-                    {catalyst ? (
-                      <div style={{ color: "var(--ink-1)", fontWeight: 500 }}>{catalyst.split("|")[0]?.trim()}</div>
-                    ) : null}
-                    <div style={{ fontSize: 10, color: "var(--ink-4)", marginTop: 2 }}>
+                  <div style={{ fontSize: 10.5, lineHeight: 1.5 }}>
+                    {(() => {
+                      const cat = catalyst.split("|")[0]?.trim() || "";
+                      const isRealNews = cat && !cat.startsWith("Technical setup") && !cat.startsWith("Volume surge") && cat.length > 8;
+                      if (isRealNews) {
+                        return <div style={{ color: "var(--accent-2)", fontWeight: 500, padding: "2px 6px", background: "rgba(91,140,255,.07)", borderRadius: 4, border: "1px solid rgba(91,140,255,.18)" }}>📰 {cat.slice(0, 90)}</div>;
+                      } else {
+                        return <div style={{ color: "var(--warn)", fontSize: 10 }}>⚠️ No news catalyst — pure technical setup</div>;
+                      }
+                    })()}
+                    <div style={{ fontSize: 10, color: "var(--ink-4)", marginTop: 3 }}>
                       RSI {s["RSI"]} · Vol {s["Vol/Avg"]}x · R:R {s["R:R"] || "—"}:1
                     </div>
                   </div>
