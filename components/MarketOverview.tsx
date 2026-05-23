@@ -53,108 +53,6 @@ export default function MarketOverview({ data, panelsData, hideRanking }: { data
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-      {/* ══ TOMORROW'S TOP BUYS — shown first, most prominent ══ */}
-      <div style={{
-        background: "linear-gradient(135deg, rgba(43,208,122,.06) 0%, rgba(91,140,255,.04) 100%)",
-        border: "1px solid rgba(43,208,122,.25)", borderRadius: 16, padding: 20,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20 }}>🎯</span>
-            <div>
-              <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--up)", letterSpacing: "0.05em" }}>
-                TOMORROW'S TOP BUYS
-              </h3>
-              <p style={{ margin: 0, fontSize: 11, color: "var(--ink-3)", marginTop: 2 }}>
-                Auto-checked: EMA-51 zone · news catalyst · RSI · R:R ≥ 1.5 · no boomerang conflict
-              </p>
-            </div>
-          </div>
-          {marketBearish && (
-            <span style={{ fontSize: 11, color: "var(--warn)", padding: "4px 10px", background: "rgba(243,181,74,.1)", border: "1px solid rgba(243,181,74,.3)", borderRadius: 999 }}>
-              ⚠️ Market bearish today — reduce position size
-            </span>
-          )}
-        </div>
-
-        {nextDay.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "32px 0", color: "var(--ink-3)", fontSize: 13 }}>
-            📭 No high-conviction setups today. All 5 checks passed for 0 stocks.<br/>
-            <span style={{ fontSize: 11, marginTop: 6, display: "block" }}>Scanner runs EOD at 3:30 PM IST</span>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {nextDay.slice(0, 5).map((s: any, i: number) => {
-              const conv = s["Conviction"] || "MEDIUM";
-              const convColor = conv === "HIGH" ? "var(--up)" : conv === "MEDIUM" ? "var(--warn)" : "var(--ink-3)";
-              const pctEma = parseFloat(String(s["% from EMA51"] ?? 99));
-              const emaColor = pctEma <= 3 ? "var(--up)" : pctEma <= 7 ? "var(--accent-2)" : "var(--ink-3)";
-              return (
-                <div key={i} style={{
-                  display: "grid",
-                  gridTemplateColumns: "44px minmax(110px,1fr) 90px 90px 90px 90px minmax(200px,2fr)",
-                  gap: 8, alignItems: "center",
-                  padding: "12px 14px", borderRadius: 10,
-                  background: i === 0 ? "rgba(43,208,122,.07)" : "var(--bg-1)",
-                  border: `1px solid ${i === 0 ? "rgba(43,208,122,.2)" : "var(--line)"}`,
-                }}>
-                  {/* Rank */}
-                  <div style={{ width: 30, height: 30, borderRadius: 8, background: i === 0 ? "rgba(43,208,122,.15)" : "var(--bg-2)", display: "grid", placeItems: "center", fontSize: 13, fontWeight: 700, color: i === 0 ? "var(--up)" : "var(--ink-2)" }}>
-                    #{i + 1}
-                  </div>
-                  {/* Symbol + conviction */}
-                  <div>
-                    <a href={`https://www.tradingview.com/chart/?symbol=NSE:${s.Symbol}`} target="_blank" rel="noreferrer"
-                      style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "var(--ink-0)", textDecoration: "none" }}>
-                      {s.Symbol}
-                    </a>
-                    <div style={{ display: "flex", gap: 5, marginTop: 3, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 9.5, fontWeight: 700, padding: "1px 6px", borderRadius: 999, background: `${convColor}20`, color: convColor, border: `1px solid ${convColor}40` }}>{conv}</span>
-                      <span style={{ fontSize: 9.5, color: emaColor, padding: "1px 6px", border: `1px solid ${emaColor}40`, borderRadius: 999, background: `${emaColor}15` }}>
-                        EMA {pctEma >= 0 ? "+" : ""}{pctEma}%
-                      </span>
-                    </div>
-                  </div>
-                  {/* LTP */}
-                  <div>
-                    <div style={{ fontSize: 9.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>LTP</div>
-                    <div className="num" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-0)" }}>₹{s["LTP"]}</div>
-                  </div>
-                  {/* Entry zone */}
-                  <div>
-                    <div style={{ fontSize: 9.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Entry Zone</div>
-                    <div className="num" style={{ fontSize: 11, color: "var(--up)" }}>{s["Entry Zone"] || "—"}</div>
-                  </div>
-                  {/* Stop Loss */}
-                  <div>
-                    <div style={{ fontSize: 9.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Stop Loss</div>
-                    <div className="num" style={{ fontSize: 13, fontWeight: 600, color: "var(--down)" }}>₹{s["Stop Loss"]}</div>
-                  </div>
-                  {/* Target */}
-                  <div>
-                    <div style={{ fontSize: 9.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Target</div>
-                    <div className="num" style={{ fontSize: 11, color: "var(--up)" }}>₹{s["Target 1"]}</div>
-                    <div className="num" style={{ fontSize: 10, color: "var(--ink-3)" }}>₹{s["Target 2"]}</div>
-                  </div>
-                  {/* Why Buy */}
-                  <div style={{ fontSize: 10.5, color: "var(--ink-2)", lineHeight: 1.5 }}>
-                    {String(s["Why Buy"] || s["Catalyst"] || "").split("|").filter(Boolean).map((p: string, j: number) => (
-                      <div key={j} style={{ color: j === 0 ? "var(--ink-1)" : "var(--ink-3)" }}>{p.trim()}</div>
-                    ))}
-                    <div style={{ fontSize: 10, color: "var(--ink-4)", marginTop: 2 }}>
-                      RSI {s["RSI"]} · Vol {s["Vol/Avg"]}x · R:R {s["R:R"]}:1
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        <p style={{ margin: "12px 0 0", fontSize: 10.5, color: "var(--ink-4)" }}>
-          ⚠️ Always confirm on TradingView before buying. Use the Stop Loss shown. Never risk more than 1-2% of capital per trade.
-        </p>
-      </div>
-
       {/* ── Market Indicators ── */}
       {indicators.length > 0 && (
         <Card>
@@ -277,6 +175,106 @@ export default function MarketOverview({ data, panelsData, hideRanking }: { data
       <p style={{ fontSize: 10.5, color: "var(--ink-4)", textAlign: "center", paddingBottom: 4, margin: 0 }}>
         Updated: {data?.scan_time || panelsData?.scan_time || "—"}
       </p>
+
+      {/* ══ TOMORROW'S TOP BUYS — below all market data ══ */}
+      <div style={{
+        background: "linear-gradient(135deg, rgba(43,208,122,.06) 0%, rgba(91,140,255,.04) 100%)",
+        border: "1px solid rgba(43,208,122,.25)", borderRadius: 16, padding: 20,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>🎯</span>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--up)", letterSpacing: "0.05em" }}>TOMORROW'S TOP BUYS</h3>
+              <p style={{ margin: 0, fontSize: 11, color: "var(--ink-3)", marginTop: 2 }}>
+                Catalyst-first · EMA-51 zone · RSI rising · R:R ≥ 1.5 · no boomerang conflict
+              </p>
+            </div>
+          </div>
+          {marketBearish && (
+            <span style={{ fontSize: 11, color: "var(--warn)", padding: "4px 10px", background: "rgba(243,181,74,.1)", border: "1px solid rgba(243,181,74,.3)", borderRadius: 999 }}>
+              ⚠️ Market bearish — reduce position size
+            </span>
+          )}
+        </div>
+
+        {nextDay.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "32px 0", color: "var(--ink-3)", fontSize: 13 }}>
+            📭 No high-conviction setups today. Scanner runs EOD at 3:30 PM IST.
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {nextDay.slice(0, 5).map((s: any, i: number) => {
+              const conv = s["Conviction"] || "MEDIUM";
+              const convColor = conv === "HIGH" ? "var(--up)" : conv === "MEDIUM" ? "var(--warn)" : "var(--ink-3)";
+              const pctEma = parseFloat(String(s["% from EMA51"] ?? 99));
+              const isGoodEma = isFinite(pctEma) && pctEma < 50;
+              const emaColor = pctEma <= 3 ? "var(--up)" : pctEma <= 7 ? "var(--accent-2)" : "var(--ink-3)";
+              const mcLink = `https://www.moneycontrol.com/news/tags/${s.Symbol?.toLowerCase()}/`;
+              const catalyst = String(s["Catalyst"] || s["Why Buy"] || "");
+              return (
+                <div key={i} style={{
+                  display: "grid",
+                  gridTemplateColumns: "44px minmax(140px,1.2fr) 90px 90px 90px 90px minmax(200px,2fr)",
+                  gap: 8, alignItems: "center",
+                  padding: "12px 14px", borderRadius: 10,
+                  background: i === 0 ? "rgba(43,208,122,.07)" : "var(--bg-1)",
+                  border: `1px solid ${i === 0 ? "rgba(43,208,122,.2)" : "var(--line)"}`,
+                }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 8, background: i === 0 ? "rgba(43,208,122,.15)" : "var(--bg-2)", display: "grid", placeItems: "center", fontSize: 13, fontWeight: 700, color: i === 0 ? "var(--up)" : "var(--ink-2)" }}>
+                    #{i + 1}
+                  </div>
+                  {/* Symbol + links */}
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <a href={`https://www.tradingview.com/chart/?symbol=NSE:${s.Symbol}`} target="_blank" rel="noreferrer"
+                        style={{ fontFamily: "var(--mono)", fontWeight: 700, fontSize: 14, color: "var(--ink-0)", textDecoration: "none" }}>
+                        {s.Symbol}
+                      </a>
+                      <a href={mcLink} target="_blank" rel="noreferrer"
+                        style={{ fontSize: 9.5, color: "var(--accent-2)", padding: "1px 5px", border: "1px solid rgba(91,140,255,.3)", borderRadius: 4, textDecoration: "none", background: "rgba(91,140,255,.08)" }}>
+                        MC News
+                      </a>
+                    </div>
+                    <div style={{ display: "flex", gap: 5, marginTop: 3, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 9.5, fontWeight: 700, padding: "1px 6px", borderRadius: 999, background: `${convColor}20`, color: convColor, border: `1px solid ${convColor}40` }}>{conv}</span>
+                      {isGoodEma && <span style={{ fontSize: 9.5, color: emaColor, padding: "1px 6px", border: `1px solid ${emaColor}40`, borderRadius: 999, background: `${emaColor}15` }}>EMA {pctEma >= 0 ? "+" : ""}{pctEma}%</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>LTP</div>
+                    <div className="num" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-0)" }}>₹{s["LTP"]}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Entry</div>
+                    <div className="num" style={{ fontSize: 11, color: "var(--up)" }}>{s["Entry Zone"] || "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Stop Loss</div>
+                    <div className="num" style={{ fontSize: 13, fontWeight: 600, color: "var(--down)" }}>₹{s["Stop Loss"] || "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Target</div>
+                    <div className="num" style={{ fontSize: 11, color: "var(--up)" }}>₹{s["Target 1"] || "—"}</div>
+                    <div className="num" style={{ fontSize: 10, color: "var(--ink-3)" }}>₹{s["Target 2"] || ""}</div>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: "var(--ink-2)", lineHeight: 1.5 }}>
+                    {catalyst ? (
+                      <div style={{ color: "var(--ink-1)", fontWeight: 500 }}>{catalyst.split("|")[0]?.trim()}</div>
+                    ) : null}
+                    <div style={{ fontSize: 10, color: "var(--ink-4)", marginTop: 2 }}>
+                      RSI {s["RSI"]} · Vol {s["Vol/Avg"]}x · R:R {s["R:R"] || "—"}:1
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <p style={{ margin: "12px 0 0", fontSize: 10.5, color: "var(--ink-4)" }}>
+          ⚠️ Always verify on TradingView + check Moneycontrol news before buying. Use Stop Loss. Never risk more than 1-2% of capital per trade.
+        </p>
+      </div>
     </div>
   );
 }

@@ -167,14 +167,21 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
 
         {/* Right controls */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {subStatus === "trial" && daysLeft !== null && daysLeft <= 5 && (
-            <Link href="/billing" style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--down)", color: "white", fontSize: 11.5, fontWeight: 600, padding: "5px 12px", borderRadius: 8, textDecoration: "none" }}>
-              <CreditCard size={13}/> {daysLeft}d left
+          {subStatus === "trial" && daysLeft !== null && (
+            <Link href="/billing" style={{
+              display: "flex", alignItems: "center", gap: 6,
+              background: daysLeft <= 5 ? "var(--down)" : "linear-gradient(135deg,#2bd07a,#3b82f6)",
+              color: "white", fontSize: 11.5, fontWeight: 700,
+              padding: "6px 14px", borderRadius: 8, textDecoration: "none",
+              boxShadow: "0 2px 8px rgba(43,208,122,.3)"
+            }}>
+              <CreditCard size={13}/>
+              {daysLeft <= 5 ? `⚠️ ${daysLeft}d left — Upgrade ₹99/mo` : `Upgrade ₹99/mo · ${daysLeft}d trial left`}
             </Link>
           )}
-          {subStatus === "trial" && daysLeft !== null && daysLeft > 5 && (
-            <Link href="/billing" style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--warn-bg)", color: "var(--warn)", fontSize: 11.5, border: "1px solid rgba(243,181,74,.30)", padding: "5px 12px", borderRadius: 8, textDecoration: "none" }}>
-              <CreditCard size={13}/> {daysLeft}d trial
+          {subStatus !== "trial" && subStatus !== "active" && (
+            <Link href="/billing" style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,#2bd07a,#3b82f6)", color: "white", fontSize: 11.5, fontWeight: 700, padding: "6px 14px", borderRadius: 8, textDecoration: "none" }}>
+              <CreditCard size={13}/> Subscribe ₹99/mo
             </Link>
           )}
           <button onClick={toggle} style={{ background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--ink-2)", width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", cursor: "pointer" }}>
