@@ -45,9 +45,15 @@ export async function POST() {
       plan,
     });
   } catch (err: any) {
-    console.error("Razorpay create-plan error:", err);
+    console.error("Razorpay create-plan error:", JSON.stringify(err, null, 2));
+    // Return full error details so we can diagnose
     return NextResponse.json({
-      error: err?.error?.description ?? err.message ?? "Failed to create plan"
+      error:        err?.error?.description ?? err?.message ?? "Failed to create plan",
+      error_code:   err?.error?.code ?? err?.code ?? null,
+      error_field:  err?.error?.field ?? null,
+      status_code:  err?.statusCode ?? err?.status ?? null,
+      full_message: err?.message ?? null,
+      hint:         "If error mentions 'Authentication failed' → wrong key. If 'No Key' → key not deployed. If 'live mode disabled' → activate live mode in Razorpay dashboard.",
     }, { status: 500 });
   }
 }
