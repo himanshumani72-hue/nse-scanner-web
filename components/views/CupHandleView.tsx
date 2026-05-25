@@ -128,9 +128,14 @@ export default function CupHandleView({ alerts }: { alerts: Alert[] }) {
 
               {/* News — show actual headline, not just a score number */}
               <span style={{ fontSize: 10.5, color: news > 0 ? "var(--accent-2)" : "var(--ink-4)", lineHeight: 1.35 }}>
-                {news > 0
-                  ? String(d["Top Headline"] ?? d["Top Catalyst"] ?? d["Top News"] ?? "News signal").slice(0, 50)
-                  : "—"}
+                {(() => {
+                  const days = parseInt(String(d["Days Persistent"] ?? 0));
+                  const newsTxt = String(d["Top Headline"] ?? d["Top Catalyst"] ?? d["Top News"] ?? "").slice(0, 45);
+                  const persistBadge = days >= 3 ? ` ⭐${days}d` : days >= 2 ? ` ${days}d` : "";
+                  if (news > 0) return <>📰 {newsTxt}<span style={{ color: "var(--up)", fontWeight: 600 }}>{persistBadge}</span></>;
+                  if (days >= 3) return <span style={{ color: "var(--up)", fontWeight: 600 }}>⭐ {days}d persistent</span>;
+                  return "—";
+                })()}
               </span>
 
               {/* Fundamental */}

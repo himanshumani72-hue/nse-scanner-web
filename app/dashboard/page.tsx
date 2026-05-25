@@ -36,6 +36,10 @@ export default async function DashboardPage() {
   const cannon       = alerts?.filter(a => a.scan_type === "CANNON_MOMENTUM")   ?? [];
   const boomerang    = alerts?.filter(a => a.scan_type === "BOOMERANG_REVERSAL") ?? [];
   const turnaround   = alerts?.filter(a => a.scan_type === "TURNAROUND")         ?? [];
+  const bulkDeals    = alerts?.filter(a => a.scan_type === "BULK_DEALS")          ?? [];
+  const breakout52w  = alerts?.filter(a => a.scan_type === "BREAKOUT_52W")         ?? [];
+  const sectors      = alerts?.filter(a => a.scan_type === "SECTOR_ROTATION")      ?? [];
+  const broker       = alerts?.filter(a => a.scan_type === "BROKER_UPGRADES")      ?? [];
   const alertsLast   = alerts?.[0]?.scanned_at ?? null;
 
   // Fetch market overview data
@@ -83,6 +87,10 @@ export default async function DashboardPage() {
       cannonAlerts={cannon}
       boomerangAlerts={boomerang}
       turnaroundAlerts={turnaround}
+      bulkDealsAlerts={bulkDeals}
+      breakoutAlerts={breakout52w}
+      sectorAlerts={sectors}
+      brokerAlerts={broker}
       marketData={marketData}
       panelsData={panelsData}
     />

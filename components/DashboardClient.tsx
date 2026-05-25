@@ -11,6 +11,10 @@ import WPatternView from "./views/WPatternView";
 import MomentumView from "./views/MomentumView";
 import AboutToFallView from "./views/AboutToFallView";
 import TurnaroundView from "./views/TurnaroundView";
+import BulkDealsView from "./views/BulkDealsView";
+import BreakoutView from "./views/BreakoutView";
+import SectorRotationView from "./views/SectorRotationView";
+import BrokerageView from "./views/BrokerageView";
 import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
 import Link from "next/link";
@@ -27,11 +31,15 @@ interface Props {
   cannonAlerts?:    Alert[];
   boomerangAlerts?: Alert[];
   turnaroundAlerts?: Alert[];
+  bulkDealsAlerts?:  Alert[];
+  breakoutAlerts?:   Alert[];
+  sectorAlerts?:     Alert[];
+  brokerAlerts?:     Alert[];
   marketData?:     any;
   panelsData?:     any;
 }
 
-type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking" | "momentum" | "falling" | "turnaround";
+type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking" | "momentum" | "falling" | "turnaround" | "bulkdeals" | "breakout" | "sectors" | "broker";
 
 const ICONS = {
   Globe:   () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="6" cy="6" r="4.5"/><path d="M1.5 6 H10.5"/><path d="M6 1.5 a6 5 0 0 1 0 9 a6 5 0 0 1 0 -9"/></svg>,
@@ -45,7 +53,7 @@ const ICONS = {
   Search:  () => <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6" cy="6" r="4.25"/><path d="M9.5 9.5 L12.5 12.5" strokeLinecap="round"/></svg>,
 };
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], marketData, panelsData }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], marketData, panelsData }: Props) {
   const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
@@ -53,6 +61,10 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [momentum,    setMomentum]   = useState<Alert[]>(cannonAlerts);
   const [boomerang,   setBoomerang]  = useState<Alert[]>(boomerangAlerts);
   const [turnaround,  setTurnaround] = useState<Alert[]>(turnaroundAlerts);
+  const [bulkDeals,   setBulkDeals]  = useState<Alert[]>(bulkDealsAlerts);
+  const [breakout,    setBreakout]   = useState<Alert[]>(breakoutAlerts);
+  const [sectors,     setSectors]    = useState<Alert[]>(sectorAlerts);
+  const [broker,      setBroker]     = useState<Alert[]>(brokerAlerts);
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
   const [clock,       setClock]      = useState("");
@@ -84,6 +96,10 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         if (a.scan_type === "CANNON_MOMENTUM")  setMomentum(prev   => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "BOOMERANG_REVERSAL") setBoomerang(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "TURNAROUND")       setTurnaround(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "BULK_DEALS")       setBulkDeals(prev  => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "BREAKOUT_52W")     setBreakout(prev   => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "SECTOR_ROTATION")  setSectors(prev    => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "BROKER_UPGRADES")  setBroker(prev     => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
@@ -105,6 +121,10 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "wpattern",  label: "W-Pattern 15m",         icon: ICONS.W,       count: wPats.length },
     { id: "momentum",   label: "Momentum Strategy",     icon: ICONS.Rocket,  count: momentum.length },
     { id: "turnaround", label: "Turnaround Plays",     icon: ICONS.Pattern, count: turnaround.length || null },
+    { id: "bulkdeals", label: "Bulk Deals",            icon: ICONS.Trophy,  count: bulkDeals.length || null },
+    { id: "breakout",  label: "52W Breakouts",         icon: ICONS.Rocket,  count: breakout.length || null },
+    { id: "sectors",   label: "Sector Rotation",       icon: ICONS.Globe,   count: sectors.length || null },
+    { id: "broker",    label: "Broker Upgrades",       icon: ICONS.Trophy,  count: broker.length || null },
     { id: "falling",   label: "Stocks About to Fall",  icon: ICONS.Danger,  count: (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)) || null },
     { id: "ranking",   label: "Probability",           icon: ICONS.Trophy,  count: panelsData?.ranking?.length ?? null },
   ];
@@ -250,6 +270,10 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "wpattern"   && <WPatternView     alerts={wPats} />}
           {tab === "momentum"   && <MomentumView     alerts={momentum} />}
           {tab === "turnaround" && <TurnaroundView   alerts={turnaround} />}
+          {tab === "bulkdeals"  && <BulkDealsView    alerts={bulkDeals} />}
+          {tab === "breakout"   && <BreakoutView     alerts={breakout} />}
+          {tab === "sectors"    && <SectorRotationView alerts={sectors} />}
+          {tab === "broker"     && <BrokerageView    alerts={broker} />}
           {tab === "falling"    && <AboutToFallView  boomerangAlerts={boomerang} panelsData={panelsData} />}
           {tab === "ranking"    && <RankingTable     panelsData={panelsData} />}
         </main>
