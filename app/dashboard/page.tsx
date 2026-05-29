@@ -14,21 +14,26 @@ export default async function DashboardPage() {
   const istNow = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
   const today  = istNow.toISOString().split("T")[0];
 
-  // Try today first, then fall back to most recent date with data (up to 4 days back)
-  const { data: recentAlerts = [] } = await supabase
-    .from("alerts")
-    .select("scan_date")
-    .gte("scan_date", new Date(Date.now() - 4 * 86400000).toISOString().split("T")[0])
-    .order("scan_date", { ascending: false })
-    .limit(1);
-
-  const effectiveDate = recentAlerts?.[0]?.scan_date ?? today;
-
-  const { data: alerts = [] } = await supabase
+  // Fetch alerts from the last 2 days then dedupe per (scan_type, symbol)
+  // — this is midnight-safe: if a scan runs 23:55 → 00:30, rows split across
+  // two dates but the latest one wins. Also robust if Friday's data is the
+  // most recent (over weekend).
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString().split("T")[0];
+  const { data: rawAlerts = [] } = await supabase
     .from("alerts")
     .select("*")
-    .eq("scan_date", effectiveDate)
+    .gte("scan_date", twoDaysAgo)
     .order("scanned_at", { ascending: false });
+
+  // Keep only the latest row per (scan_type, symbol)
+  const seen = new Set<string>();
+  const alerts: typeof rawAlerts = [];
+  for (const a of rawAlerts ?? []) {
+    const key = `${a.scan_type}::${a.symbol}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    alerts.push(a);
+  }
 
   const bigMovers    = alerts?.filter(a => a.scan_type === "BIG_MOVERS")       ?? [];
   const chartPat     = alerts?.filter(a => a.scan_type === "CHART_PATTERN")    ?? [];
@@ -40,6 +45,7 @@ export default async function DashboardPage() {
   const breakout52w  = alerts?.filter(a => a.scan_type === "BREAKOUT_52W")         ?? [];
   const sectors      = alerts?.filter(a => a.scan_type === "SECTOR_ROTATION")      ?? [];
   const broker       = alerts?.filter(a => a.scan_type === "BROKER_UPGRADES")      ?? [];
+  const twitter      = alerts?.filter(a => a.scan_type === "TWITTER_SPIKE")        ?? [];
   const alertsLast   = alerts?.[0]?.scanned_at ?? null;
 
   // Fetch market overview data
@@ -57,6 +63,15 @@ export default async function DashboardPage() {
     .eq("id", 2)
     .single();
   const panelsData = panelsRow?.data ?? null;
+
+  // Fetch latest scanner health run (today)
+  const { data: healthRow } = await supabase
+    .from("scanner_health")
+    .select("*")
+    .order("run_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const healthData = healthRow ?? null;
 
   // Last scan: use panel scan_time (updates every run even with 0 alerts)
   // panel_updater.py writes scan_time in DD/MM/YYYY HH:MM format
@@ -91,8 +106,10 @@ export default async function DashboardPage() {
       breakoutAlerts={breakout52w}
       sectorAlerts={sectors}
       brokerAlerts={broker}
+      twitterAlerts={twitter}
       marketData={marketData}
       panelsData={panelsData}
+      healthData={healthData}
     />
   );
 }

@@ -9,12 +9,16 @@ function tv(symbol: string) {
 
 export default function BreakoutView({ alerts }: { alerts: Alert[] }) {
   if (!alerts.length) return (
-    <Empty msg="No 52-week high breakouts today. Scanner runs EOD looking for stocks crossing above prior 52W high on 1.5x+ volume." />
+    <Empty msg="No 52-week high breakouts or near-breakouts today. The scanner finished — the market simply produced no qualifying stocks (close > prior 52W high on 1.3×+ volume + 1.5%+ gain). This is a real 'no signal' day, not a failure." />
   );
 
-  const high   = alerts.filter(a => String(a.data["Conviction"]) === "HIGH");
-  const medium = alerts.filter(a => String(a.data["Conviction"]) === "MEDIUM");
-  const low    = alerts.filter(a => String(a.data["Conviction"]) === "LOW");
+  // Split true breakouts from near-breakouts
+  const breakouts = alerts.filter(a => String(a.data["Type"] ?? "BREAKOUT") === "BREAKOUT");
+  const nears     = alerts.filter(a => String(a.data["Type"] ?? "") === "NEAR");
+
+  const high   = breakouts.filter(a => String(a.data["Conviction"]) === "HIGH");
+  const medium = breakouts.filter(a => String(a.data["Conviction"]) === "MEDIUM");
+  const low    = breakouts.filter(a => String(a.data["Conviction"]) === "LOW");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -50,6 +54,14 @@ export default function BreakoutView({ alerts }: { alerts: Alert[] }) {
           <SectionHdr icon="🔵" title="LOW Conviction" count={low.length}
             hint="Marginal breakout — wait for confirmation" />
           <BreakoutTable alerts={low} tone="info" />
+        </div>
+      )}
+
+      {nears.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionHdr icon="👀" title="Near-Breakout Watchlist" count={nears.length}
+            hint="Within 0.5% of 52W high on strong volume — likely breaks out tomorrow" />
+          <BreakoutTable alerts={nears} tone="info" />
         </div>
       )}
 

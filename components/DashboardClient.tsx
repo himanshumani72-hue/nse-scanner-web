@@ -15,8 +15,10 @@ import BulkDealsView from "./views/BulkDealsView";
 import BreakoutView from "./views/BreakoutView";
 import SectorRotationView from "./views/SectorRotationView";
 import BrokerageView from "./views/BrokerageView";
+import TwitterSpikeView from "./views/TwitterSpikeView";
 import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
+import ScannerHealthRail from "./ScannerHealthRail";
 import Link from "next/link";
 import { Sun, Moon, CreditCard } from "lucide-react";
 
@@ -35,11 +37,13 @@ interface Props {
   breakoutAlerts?:   Alert[];
   sectorAlerts?:     Alert[];
   brokerAlerts?:     Alert[];
+  twitterAlerts?:    Alert[];
   marketData?:     any;
   panelsData?:     any;
+  healthData?:     any;
 }
 
-type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking" | "momentum" | "falling" | "turnaround" | "bulkdeals" | "breakout" | "sectors" | "broker";
+type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking" | "momentum" | "falling" | "turnaround" | "bulkdeals" | "breakout" | "sectors" | "broker" | "twitter";
 
 const ICONS = {
   Globe:   () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="6" cy="6" r="4.5"/><path d="M1.5 6 H10.5"/><path d="M6 1.5 a6 5 0 0 1 0 9 a6 5 0 0 1 0 -9"/></svg>,
@@ -53,7 +57,7 @@ const ICONS = {
   Search:  () => <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6" cy="6" r="4.25"/><path d="M9.5 9.5 L12.5 12.5" strokeLinecap="round"/></svg>,
 };
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], marketData, panelsData }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], marketData, panelsData, healthData }: Props) {
   const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
@@ -65,6 +69,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [breakout,    setBreakout]   = useState<Alert[]>(breakoutAlerts);
   const [sectors,     setSectors]    = useState<Alert[]>(sectorAlerts);
   const [broker,      setBroker]     = useState<Alert[]>(brokerAlerts);
+  const [twitter,     setTwitter]    = useState<Alert[]>(twitterAlerts);
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
   const [clock,       setClock]      = useState("");
@@ -100,6 +105,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         if (a.scan_type === "BREAKOUT_52W")     setBreakout(prev   => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "SECTOR_ROTATION")  setSectors(prev    => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "BROKER_UPGRADES")  setBroker(prev     => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "TWITTER_SPIKE")    setTwitter(prev    => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
@@ -125,6 +131,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "breakout",  label: "52W Breakouts",         icon: ICONS.Rocket,  count: breakout.length || null },
     { id: "sectors",   label: "Sector Rotation",       icon: ICONS.Globe,   count: sectors.length || null },
     { id: "broker",    label: "Broker Upgrades",       icon: ICONS.Trophy,  count: broker.length || null },
+    { id: "twitter",   label: "Twitter Spike",         icon: ICONS.Bolt,    count: twitter.length || null },
     { id: "falling",   label: "Stocks About to Fall",  icon: ICONS.Danger,  count: (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)) || null },
     { id: "ranking",   label: "Probability",           icon: ICONS.Trophy,  count: panelsData?.ranking?.length ?? null },
   ];
@@ -274,39 +281,14 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "breakout"   && <BreakoutView     alerts={breakout} />}
           {tab === "sectors"    && <SectorRotationView alerts={sectors} />}
           {tab === "broker"     && <BrokerageView    alerts={broker} />}
+          {tab === "twitter"    && <TwitterSpikeView alerts={twitter} />}
           {tab === "falling"    && <AboutToFallView  boomerangAlerts={boomerang} panelsData={panelsData} />}
           {tab === "ranking"    && <RankingTable     panelsData={panelsData} />}
         </main>
 
-        {/* ── Activity Rail ── */}
+        {/* ── Scanner Health Rail ── */}
         <aside style={{ width: 300, flexShrink: 0, borderLeft: "1px solid var(--line)", background: "var(--bg-1)", padding: "20px 18px", position: "sticky", top: 130, alignSelf: "flex-start", maxHeight: "calc(100vh - 130px)", overflowY: "auto" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-            <PulseDot color="var(--up)"/>
-            <h3 style={{ margin: 0, fontSize: 12, fontWeight: 600, letterSpacing: "0.10em", textTransform: "uppercase", color: "var(--ink-1)" }}>Live Activity</h3>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {movers.slice(0, 4).map((a, i) => (
-              <div key={a.id} style={{ display: "grid", gridTemplateColumns: "10px 1fr", gap: 12, paddingBottom: i < 3 ? 14 : 0, borderBottom: i < 3 ? "1px solid var(--line)" : "none" }}>
-                <div style={{ paddingTop: 4 }}>
-                  <span style={{ display: "block", width: 8, height: 8, borderRadius: "50%", background: "var(--up)", boxShadow: "0 0 0 3px rgba(43,208,122,.18)" }}/>
-                </div>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <span className="num" style={{ fontSize: 10.5, color: "var(--ink-3)" }}>
-                      {new Date(a.scanned_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}
-                    </span>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 500, color: "var(--up)", background: "var(--up-bg)", border: "1px solid var(--up-line)" }}>Big Mover</span>
-                  </div>
-                  <p style={{ margin: 0, fontSize: 12, color: "var(--ink-1)", lineHeight: 1.45 }}>
-                    {a.symbol} — Conf {a.data?.["Confidence %"] ?? ""}% · {String(a.data?.["Est. Move"] ?? a.data?.["Recovery %"] ?? "")}
-                  </p>
-                </div>
-              </div>
-            ))}
-            {movers.length === 0 && (
-              <p style={{ fontSize: 12, color: "var(--ink-3)", margin: 0 }}>No alerts yet. Check back at 9:20 AM IST.</p>
-            )}
-          </div>
+          <ScannerHealthRail health={healthData} />
 
           {/* Trial / subscribe box */}
           <div style={{ marginTop: 22, padding: 14, background: "var(--bg-2)", border: "1px dashed var(--line-2)", borderRadius: 10 }}>
