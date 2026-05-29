@@ -141,7 +141,7 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
             🔮 Next Day Potential Movers
           </h2>
           <p style={{ margin: "0 0 16px", fontSize: 11, color: "var(--ink-3)" }}>
-            EOD signals suggesting big move tomorrow · Volume surge + breakout zone + MACD building + pre-result run
+            EOD signals · EMA-51 entry zone + Vol surge + MACD building + News catalyst + <b style={{color:"var(--accent-2)"}}>Cross-scanner confirmation</b> + <b style={{color:"var(--accent-2)"}}>Multi-day streak</b> + Live sector strength
           </p>
 
           <div style={{ overflowX: "auto" }}>
