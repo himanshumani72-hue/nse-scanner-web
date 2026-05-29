@@ -131,7 +131,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "breakout",  label: "52W Breakouts",         icon: ICONS.Rocket,  count: breakout.length || null },
     { id: "sectors",   label: "Sector Rotation",       icon: ICONS.Globe,   count: sectors.length || null },
     { id: "broker",    label: "Broker Upgrades",       icon: ICONS.Trophy,  count: broker.length || null },
-    { id: "twitter",   label: "Twitter Spike",         icon: ICONS.Bolt,    count: twitter.length || null },
+    { id: "twitter",   label: "Buzz Spike",            icon: ICONS.Rocket,  count: twitter.length || null },
     { id: "falling",   label: "Stocks About to Fall",  icon: ICONS.Danger,  count: (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)) || null },
     { id: "ranking",   label: "Probability",           icon: ICONS.Trophy,  count: panelsData?.ranking?.length ?? null },
   ];
