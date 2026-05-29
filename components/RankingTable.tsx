@@ -4,6 +4,20 @@ function tv(symbol: string) {
   return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
 }
 
+function ScoreCell({ v, highlight }: { v: any; highlight?: boolean }) {
+  const n = parseFloat(String(v ?? 0));
+  if (!isFinite(n)) return <span className="num" style={{ color: "var(--ink-4)" }}>—</span>;
+  const color = n >= 8 ? "var(--up)" : n >= 6 ? "var(--accent-2)" : n >= 4 ? "var(--ink-2)" : "var(--down)";
+  return (
+    <span className="num" style={{
+      color, fontSize: 13,
+      fontWeight: highlight ? 700 : 500,
+    }}>
+      {n.toFixed(1)}
+    </span>
+  );
+}
+
 export default function RankingTable({ panelsData }: { panelsData?: any }) {
   const ranking  = panelsData?.ranking   || [];
   const watchlist = panelsData?.watchlist || [];
@@ -16,7 +30,8 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
     </div>
   );
 
-  const COL = "minmax(40px,auto) minmax(130px,1.2fr) 60px 60px 60px 70px 80px 70px 90px minmax(200px,2fr)";
+  // Rank · Stock · Macro · Sector · Event · Stat · Tech · Cross · Persist · Momentum · Final · Reason
+  const COL = "minmax(40px,auto) minmax(120px,1fr) 55px 55px 55px 60px 60px 55px 65px 70px 90px minmax(220px,2fr)";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -24,12 +39,14 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
       {/* ── Final Probability Ranking ── */}
       <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, padding: 20 }}>
         <h2 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 600, color: "var(--ink-0)" }}>🏆 Final Probability Ranking — Composite Score</h2>
-        <p style={{ margin: "0 0 16px", fontSize: 11, color: "var(--ink-3)" }}>Weighted: Macro 15% · Sector 15% · Seasonal 10% · Technical 30% · Statistical 15% · Event 15%</p>
+        <p style={{ margin: "0 0 16px", fontSize: 11, color: "var(--ink-3)" }}>
+          Weighted: Tech 20% · Cross-scanner 15% · Macro 10% · Sector 10% (live) · Stat 10% · Event 10% · Momentum 10% · Persistence 10% · Seasonal 5%
+        </p>
 
         <div style={{ overflowX: "auto" }}>
           {/* Header */}
           <div style={{ display: "grid", gridTemplateColumns: COL, gap: 12, padding: "8px 12px", color: "var(--ink-3)", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.10em", background: "var(--bg-2)", borderRadius: 8, marginBottom: 4 }}>
-            {["Rank","Stock","Macro","Sector","Event","Seasonal","Statistical","Technical","Final Score","Reason / Catalyst"].map(h => (
+            {["Rank","Stock","Macro","Sector","Event","Stat","Tech","Cross","Persist","Momentum","Final","Reason / Confirmed by"].map(h => (
               <span key={h}>{h}</span>
             ))}
           </div>
@@ -46,30 +63,38 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
                 onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "var(--bg-2)" : "transparent")}>
                 <span style={{ fontSize: 13, color: "var(--ink-3)" }}>{medal}</span>
                 <span className="num" style={{ fontWeight: 700, color: "var(--ink-0)", fontSize: 13 }}>{r["Stock Name"]}</span>
-                <span className="num" style={{ color: "var(--accent-2)", fontSize: 13 }}>{r.Macro}</span>
-                <span className="num" style={{ color: "var(--ink-2)", fontSize: 13 }}>{r.Sector}</span>
-                <span className="num" style={{ color: "var(--ink-2)", fontSize: 13 }}>{r.Event}</span>
-                <span className="num" style={{ color: "var(--ink-2)", fontSize: 13 }}>{r.Seasonal}</span>
-                <span className="num" style={{ color: "var(--ink-2)", fontSize: 13 }}>{r.Statistical}</span>
-                <span className="num" style={{ color: "var(--up)", fontWeight: 600, fontSize: 13 }}>{r.Technical}</span>
-                    <span className="num" style={{ fontWeight: 700, fontSize: 16, color: fsColor, background: fsBg, padding: "2px 10px", borderRadius: 8, display: "inline-block" }}>{fs}</span>
-                    {/* Reason / Catalyst */}
-                    <div style={{ fontSize: 11, lineHeight: 1.4 }}>
-                      {r["Reason"] && r["Reason"] !== "Technical momentum" ? (
-                        <span style={{ color: "var(--ink-1)" }}>{String(r["Reason"]).slice(0, 100)}</span>
-                      ) : r["Top News"] ? (
-                        <span style={{ color: "var(--ink-3)" }}>{String(r["Top News"]).slice(0, 70)}</span>
-                      ) : (
-                        <span style={{ color: "var(--ink-4)" }}>Technical momentum</span>
-                      )}
-                      {r["Fundamental"] && (
-                        <span style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 4, fontSize: 10,
-                          background: r["Fundamental"] === "Strong" ? "rgba(43,208,122,.15)" : r["Fundamental"] === "Moderate" ? "rgba(243,181,74,.15)" : "transparent",
-                          color: r["Fundamental"] === "Strong" ? "var(--up)" : r["Fundamental"] === "Moderate" ? "var(--warn)" : "var(--ink-4)" }}>
-                          {r["Fundamental"]}
-                        </span>
-                      )}
+                <ScoreCell v={r.Macro} />
+                <ScoreCell v={r.Sector} />
+                <ScoreCell v={r.Event} />
+                <ScoreCell v={r.Statistical} />
+                <ScoreCell v={r.Technical} highlight />
+                <ScoreCell v={r.Cross} highlight />
+                <ScoreCell v={r.Persistence} />
+                <ScoreCell v={r.Momentum} />
+                <span className="num" style={{ fontWeight: 700, fontSize: 16, color: fsColor, background: fsBg, padding: "2px 10px", borderRadius: 8, display: "inline-block" }}>{fs}</span>
+                {/* Reason + which scanners confirmed */}
+                <div style={{ fontSize: 11, lineHeight: 1.4 }}>
+                  {r["Confirmed by"] && r["Confirmed by"] !== "—" && (
+                    <div style={{ marginBottom: 3 }}>
+                      <span style={{ fontSize: 9.5, color: "var(--ink-4)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Confirmed by: </span>
+                      <span style={{ color: "var(--accent-2)", fontWeight: 500 }}>{r["Confirmed by"]}</span>
                     </div>
+                  )}
+                  {r["Reason"] && r["Reason"] !== "Technical momentum" ? (
+                    <span style={{ color: "var(--ink-1)" }}>{String(r["Reason"]).slice(0, 90)}</span>
+                  ) : r["Top News"] ? (
+                    <span style={{ color: "var(--ink-3)" }}>{String(r["Top News"]).slice(0, 70)}</span>
+                  ) : (
+                    <span style={{ color: "var(--ink-4)" }}>Technical momentum</span>
+                  )}
+                  {r["Fundamental"] && (
+                    <span style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 4, fontSize: 10,
+                      background: r["Fundamental"] === "Strong" ? "rgba(43,208,122,.15)" : r["Fundamental"] === "Moderate" ? "rgba(243,181,74,.15)" : "transparent",
+                      color: r["Fundamental"] === "Strong" ? "var(--up)" : r["Fundamental"] === "Moderate" ? "var(--warn)" : "var(--ink-4)" }}>
+                      {r["Fundamental"]}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
