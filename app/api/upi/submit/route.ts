@@ -2,8 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-
-const AMOUNT_INR = 99;
+import { priceForUser } from "@/lib/pricing";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,6 +24,15 @@ export async function POST(req: NextRequest) {
     }
 
     const svc = createServiceClient();
+
+    // Determine the correct amount for this user based on how many
+    // verified payments they already have (promo applies for the first N).
+    const { count: paidCount } = await svc.from("upi_payments")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("status", "verified");
+    const pricing = priceForUser(paidCount ?? 0);
+    const expectedAmount = pricing.amount;
 
     // Check for duplicate UTR — prevents accidental double-submission AND
     // someone reusing another user's UTR
@@ -48,7 +56,7 @@ export async function POST(req: NextRequest) {
     const { data: inserted, error: insErr } = await svc.from("upi_payments").insert({
       user_id:    user.id,
       user_email: user.email,
-      amount:     AMOUNT_INR,
+      amount:     expectedAmount,           // ₹49 during promo, ₹99 after
       utr:        utr.toUpperCase(),
       upi_app:    app,
       notes:      notes || null,

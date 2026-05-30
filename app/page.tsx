@@ -4,6 +4,7 @@ import {
   CheckCircle, ChevronRight, Sparkles, Layers,
   TrendingDown, Crosshair, Newspaper, Search, Rocket,
 } from "lucide-react";
+import { OFFER, REGULAR_PRICE_INR } from "@/lib/pricing";
 
 /* ────────────────────────────────────────────────────────────
    Content data — kept above the JSX for easy editing later
@@ -165,7 +166,8 @@ export default function LandingPage() {
             ["500+", "NSE stocks scanned"],
             ["12",   "Independent scanners"],
             ["2×",   "Scans per day"],
-            ["₹99",  "Per month"],
+            [OFFER.enabled ? `₹${OFFER.price_inr}` : `₹${REGULAR_PRICE_INR}`,
+             OFFER.enabled ? "Launch offer" : "Per month"],
           ].map(([val, label]) => (
             <div key={label} style={{ textAlign: "center" }}>
               <div style={{ fontSize: 28, fontWeight: 700, color: C.ink0, lineHeight: 1.1 }}>{val}</div>
@@ -290,25 +292,55 @@ export default function LandingPage() {
 
         <div style={{
           position: "relative",
-          background: C.bg1, border: `2px solid ${C.accent}`,
+          background: C.bg1,
+          border: `2px solid ${OFFER.enabled ? C.up : C.accent}`,
           borderRadius: 16, padding: 30,
-          boxShadow: "0 20px 40px -20px rgba(91,140,255,.25)",
+          boxShadow: OFFER.enabled
+            ? "0 20px 40px -20px rgba(43,208,122,.30)"
+            : "0 20px 40px -20px rgba(91,140,255,.25)",
         }}>
           <div style={{
             position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)",
-            background: C.accent, color: "#fff",
-            fontSize: 11, fontWeight: 600, padding: "4px 12px", borderRadius: 999,
+            background: OFFER.enabled ? C.up : C.accent, color: "#fff",
+            fontSize: 11, fontWeight: 700, padding: "4px 14px", borderRadius: 999,
             letterSpacing: "0.05em", textTransform: "uppercase",
-          }}>Single plan</div>
+            whiteSpace: "nowrap",
+          }}>
+            {OFFER.enabled ? OFFER.label : "Single plan"}
+          </div>
 
           <div style={{ textAlign: "center", marginBottom: 22 }}>
-            <div style={{ fontSize: 50, fontWeight: 700, color: C.ink0, lineHeight: 1.1, marginTop: 4 }}>
-              ₹99
-              <span style={{ fontSize: 16, fontWeight: 400, color: C.ink3 }}> / month</span>
-            </div>
+            {OFFER.enabled ? (
+              <>
+                {/* Strikethrough original + bright discounted price */}
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 12, marginTop: 8 }}>
+                  <div style={{
+                    fontSize: 28, fontWeight: 500, color: C.ink3, lineHeight: 1,
+                    textDecoration: "line-through", textDecorationThickness: 2,
+                  }}>
+                    ₹{REGULAR_PRICE_INR}
+                  </div>
+                  <div style={{ fontSize: 58, fontWeight: 800, color: C.up, lineHeight: 1, letterSpacing: "-0.02em" }}>
+                    ₹{OFFER.price_inr}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 400, color: C.ink3 }}>/ mo</div>
+                </div>
+                {/* Promo tagline */}
+                <div style={{
+                  marginTop: 10, fontSize: 13, color: C.ink2, fontWeight: 500,
+                }}>
+                  {OFFER.tagline}
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 50, fontWeight: 700, color: C.ink0, lineHeight: 1.1, marginTop: 4 }}>
+                ₹{REGULAR_PRICE_INR}
+                <span style={{ fontSize: 16, fontWeight: 400, color: C.ink3 }}> / month</span>
+              </div>
+            )}
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 5,
-              marginTop: 12, padding: "5px 12px", borderRadius: 999,
+              marginTop: 14, padding: "5px 12px", borderRadius: 999,
               background: "color-mix(in oklab, var(--up) 12%, transparent)",
               border: `1px solid color-mix(in oklab, var(--up) 30%, transparent)`,
               color: C.up, fontSize: 12.5,

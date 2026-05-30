@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { OFFER, REGULAR_PRICE_INR } from "@/lib/pricing";
 
 export const runtime  = "edge";
 export const alt      = "NSE Scanner Pro — 12 NSE pattern scanners in one dashboard";
@@ -167,16 +168,47 @@ export default async function OG() {
             borderTop: `1px solid ${C.line}`,
           }}
         >
-          <div style={{ display: "flex", alignItems: "baseline", gap: 28, fontSize: 18, color: C.ink2 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ color: C.ink, fontWeight: 700, fontSize: 22 }}>₹99</span>
-              <span>/ month</span>
-            </span>
-            <span style={{ color: C.ink3 }}>·</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ color: C.green, fontWeight: 600 }}>30-day</span>
-              <span>free trial · no card</span>
-            </span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 24, fontSize: 18, color: C.ink2 }}>
+            {OFFER.enabled ? (
+              <>
+                {/* Strikethrough ₹99 + bright ₹49 */}
+                <span style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                  <span style={{
+                    color: C.ink3, fontWeight: 500, fontSize: 22,
+                    textDecoration: "line-through",
+                  }}>₹{REGULAR_PRICE_INR}</span>
+                  <span style={{ color: C.green, fontWeight: 800, fontSize: 30 }}>
+                    ₹{OFFER.price_inr}
+                  </span>
+                  <span>/ mo</span>
+                </span>
+                <span style={{ color: C.ink3 }}>·</span>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{
+                    color: C.green, fontWeight: 600, fontSize: 16,
+                    padding: "4px 10px", borderRadius: 999,
+                    background: `${C.green}15`,
+                    border: `1px solid ${C.green}40`,
+                  }}>
+                    50% OFF · first {OFFER.duration_months} mo
+                  </span>
+                </span>
+              </>
+            ) : (
+              <>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ color: C.ink, fontWeight: 700, fontSize: 22 }}>
+                    ₹{REGULAR_PRICE_INR}
+                  </span>
+                  <span>/ month</span>
+                </span>
+                <span style={{ color: C.ink3 }}>·</span>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ color: C.green, fontWeight: 600 }}>30-day</span>
+                  <span>free trial · no card</span>
+                </span>
+              </>
+            )}
           </div>
 
           <div
