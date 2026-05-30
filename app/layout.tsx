@@ -2,10 +2,35 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
+const SITE_URL = "https://nse-scanner-web.vercel.app";
+
 export const metadata: Metadata = {
-  title: "NSE Scanner Pro — Real-Time Stock Alerts",
-  description: "Get real-time NSE stock alerts — Big Movers, Chart Patterns & W-Pattern signals with position sizing. ₹99/month.",
-  keywords: "NSE scanner, stock alerts, India stock market, swing trading, intraday signals",
+  metadataBase: new URL(SITE_URL),
+  title: "NSE Scanner Pro — 12 NSE pattern scanners in one dashboard",
+  description:
+    "12 independent scanners run on 500+ NSE stocks every trading day. Cross-validation surfaces only high-conviction setups with stop loss & target. ₹99/month, 10-day free trial.",
+  keywords: [
+    "NSE scanner", "stock pattern scanner India", "swing trading India",
+    "Indian stock market alerts", "52 week high breakout", "bulk deals tracker",
+    "stock screener India", "NSE pattern detection",
+  ],
+  authors: [{ name: "NSE Scanner Pro" }],
+  openGraph: {
+    title: "NSE Scanner Pro — Pattern detection for Indian stocks",
+    description:
+      "12 scanners. One dashboard. Cross-validation surfaces only high-conviction NSE setups with stop loss & target. ₹99/month, 10-day free trial.",
+    url: SITE_URL,
+    siteName: "NSE Scanner Pro",
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NSE Scanner Pro — 12 NSE pattern scanners",
+    description:
+      "Cross-validated NSE setups with stop loss & target. ₹99/month, 10-day free trial.",
+  },
+  robots: { index: true, follow: true },
 };
 
 // Tiny inline script — runs before paint to apply the user's saved theme
