@@ -9,32 +9,87 @@ export default function BillingPage() {
 
   async function handleSubscribe() {
     setLoading(true); setError("");
+
+    // Validate client-side env var exists BEFORE making API call
+    const pubKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    if (!pubKey) {
+      setError("Payment system not fully configured (NEXT_PUBLIC_RAZORPAY_KEY_ID missing). Contact support.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/razorpay/create-subscription", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || "Failed to create subscription"); setLoading(false); return; }
+      if (!res.ok) {
+        const msg = data.hint
+          ? `${data.error}\n\nHint: ${data.hint}`
+          : data.error || "Failed to create subscription";
+        setError(msg);
+        setLoading(false);
+        return;
+      }
 
-      // Load Razorpay checkout
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => {
-        const rzp = new (window as any).Razorpay({
-          key:             process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          subscription_id: data.subscription_id,
-          name:            "NSE Scanner Pro",
-          description:     "₹99/month — NSE stock alerts subscription",
-          image:           "/logo.png",
-          prefill:         { email: data.email },
-          theme:           { color: "#3b82f6" },
-          handler:         () => { window.location.href = "/dashboard?subscribed=1"; },
-        });
-        rzp.open();
-      };
-      document.body.appendChild(script);
-    } catch {
-      setError("Something went wrong. Please try again.");
+      // Load Razorpay checkout (idempotent — re-add only if not already loaded)
+      const ensureScript = () => new Promise<void>((resolve, reject) => {
+        if ((window as any).Razorpay) { resolve(); return; }
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Failed to load Razorpay checkout"));
+        document.body.appendChild(script);
+      });
+
+      try { await ensureScript(); }
+      catch (e: any) {
+        setError(e.message || "Failed to load Razorpay. Check your network connection.");
+        setLoading(false);
+        return;
+      }
+
+      const rzp = new (window as any).Razorpay({
+        key:             pubKey,
+        subscription_id: data.subscription_id,
+        name:            "NSE Scanner Pro",
+        description:     "₹99/month — NSE stock alerts subscription",
+        image:           "/logo.png",
+        prefill:         { email: data.email },
+        theme:           { color: "#3b82f6" },
+        modal: {
+          // Reset loading state if user closes checkout without paying
+          ondismiss: () => setLoading(false),
+          escape:    true,
+          confirm_close: true,
+        },
+        handler: async () => {
+          // Don't trust client redirect — verify the payment status with our backend.
+          // The webhook is the source of truth, but this gives instant UI feedback.
+          setError("Verifying payment …");
+          try {
+            const vres  = await fetch("/api/razorpay/verify-subscription", { method: "POST" });
+            const vdata = await vres.json();
+            if (vres.ok && (vdata.status === "active")) {
+              window.location.href = "/dashboard?subscribed=1";
+            } else {
+              // Payment may still be processing — webhook will update soon
+              window.location.href = "/dashboard?subscribed=pending";
+            }
+          } catch {
+            window.location.href = "/dashboard?subscribed=pending";
+          }
+        },
+      });
+
+      rzp.on?.("payment.failed", (resp: any) => {
+        setError(`Payment failed: ${resp?.error?.description ?? "unknown error"}`);
+        setLoading(false);
+      });
+
+      rzp.open();
+    } catch (e: any) {
+      setError(e?.message || "Something went wrong. Please try again.");
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -73,7 +128,11 @@ export default function BillingPage() {
             ))}
           </ul>
 
-          {error && <p className="text-red-400 text-sm mb-4 bg-red-900/20 px-3 py-2 rounded-lg">{error}</p>}
+          {error && (
+            <p className="text-red-400 text-sm mb-4 bg-red-900/20 px-3 py-2 rounded-lg whitespace-pre-wrap">
+              {error}
+            </p>
+          )}
 
           <button
             onClick={handleSubscribe} disabled={loading}
