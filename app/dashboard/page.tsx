@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { priceForUser, OFFER } from "@/lib/pricing";
 import DashboardClient from "@/components/DashboardClient";
 
 export const revalidate = 0;  // always fresh
@@ -90,6 +91,21 @@ export default async function DashboardPage() {
     daysLeft = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   }
 
+  // Promo state: how many discounted months does this user still have?
+  // (service-role to bypass RLS — paid_count is the user's verified-payment count)
+  let promoLeft = 0;
+  let nextPrice = 99;
+  try {
+    const svc = createServiceClient();
+    const { count } = await svc.from("upi_payments")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user!.id)
+      .eq("status", "verified");
+    const pricing = priceForUser(count ?? 0);
+    promoLeft = pricing.promoLeft;
+    nextPrice = pricing.amount;
+  } catch {}
+
   return (
     <DashboardClient
       userEmail={user!.email!}
@@ -110,6 +126,9 @@ export default async function DashboardPage() {
       marketData={marketData}
       panelsData={panelsData}
       healthData={healthData}
+      promoLeft={promoLeft}
+      nextPrice={nextPrice}
+      promoEnabled={OFFER.enabled}
     />
   );
 }

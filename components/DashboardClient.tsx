@@ -20,7 +20,7 @@ import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
 import ScannerHealthRail from "./ScannerHealthRail";
 import Link from "next/link";
-import { Sun, Moon, CreditCard } from "lucide-react";
+import { Sun, Moon, CreditCard, Sparkles } from "lucide-react";
 
 interface Props {
   userEmail:       string;
@@ -41,6 +41,10 @@ interface Props {
   marketData?:     any;
   panelsData?:     any;
   healthData?:     any;
+  // Promo state (computed server-side from upi_payments count)
+  promoLeft?:      number;   // remaining discounted months for this user (0-3)
+  nextPrice?:      number;   // ₹49 during promo, ₹99 after
+  promoEnabled?:   boolean;  // is the launch offer currently active site-wide?
 }
 
 type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking" | "momentum" | "falling" | "turnaround" | "bulkdeals" | "breakout" | "sectors" | "broker" | "twitter";
@@ -56,7 +60,7 @@ const ICONS = {
   Danger:  () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M6 1.5 L10.5 9.5 H1.5 Z" strokeLinejoin="round"/><line x1="6" y1="5" x2="6" y2="7.5" strokeLinecap="round"/><circle cx="6" cy="8.8" r="0.4" fill="currentColor" stroke="none"/></svg>,
 };
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], marketData, panelsData, healthData }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
   const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
@@ -195,12 +199,32 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
               boxShadow: "0 2px 8px rgba(43,208,122,.3)"
             }}>
               <CreditCard size={13}/>
-              {daysLeft <= 5 ? `⚠️ ${daysLeft}d left — Upgrade ₹99/mo` : `Upgrade ₹99/mo · ${daysLeft}d trial left`}
+              {daysLeft <= 5
+                ? `⚠️ ${daysLeft}d left — Upgrade ₹${nextPrice}/mo`
+                : `Upgrade ₹${nextPrice}/mo · ${daysLeft}d trial left`}
             </Link>
           )}
           {subStatus !== "trial" && subStatus !== "active" && (
             <Link href="/billing" style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,#2bd07a,#3b82f6)", color: "white", fontSize: 11.5, fontWeight: 700, padding: "6px 14px", borderRadius: 8, textDecoration: "none" }}>
-              <CreditCard size={13}/> Subscribe ₹99/mo
+              <CreditCard size={13}/> Subscribe ₹{nextPrice}/mo
+            </Link>
+          )}
+
+          {/* Promo · N months left — only when user is active AND still has discounted months */}
+          {promoEnabled && subStatus === "active" && promoLeft > 0 && (
+            <Link href="/billing"
+              title={`Your next ${promoLeft} month${promoLeft === 1 ? "" : "s"} will be at ₹${nextPrice} instead of ₹99`}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "color-mix(in oklab, var(--up) 12%, transparent)",
+                border: "1px solid color-mix(in oklab, var(--up) 35%, transparent)",
+                color: "var(--up)",
+                fontSize: 11.5, fontWeight: 600,
+                padding: "5px 11px", borderRadius: 999,
+                textDecoration: "none",
+              }}>
+              <Sparkles size={12}/>
+              Promo · {promoLeft} month{promoLeft === 1 ? "" : "s"} left at ₹{nextPrice}
             </Link>
           )}
           <button onClick={toggle} style={{ background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--ink-2)", width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", cursor: "pointer" }}>
