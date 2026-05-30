@@ -1,12 +1,29 @@
 "use client";
 import { useState, useMemo } from "react";
-import { TrendingUp, CheckCircle, Copy, Check } from "lucide-react";
+import { TrendingUp, CheckCircle, Copy, Check, Smartphone } from "lucide-react";
 import Link from "next/link";
 
-// Set these in Vercel env. If env vars are missing, hard-coded fallbacks apply.
-const UPI_ID    = process.env.NEXT_PUBLIC_UPI_ID    || "himanshumani72@oksbi";
-const PAYEE     = process.env.NEXT_PUBLIC_UPI_NAME  || "NSE Scanner Pro";
-const AMOUNT    = 99;
+const UPI_ID = process.env.NEXT_PUBLIC_UPI_ID   || "himanshumani72@oksbi";
+const PAYEE  = process.env.NEXT_PUBLIC_UPI_NAME || "NSE Scanner Pro";
+const AMOUNT = 99;
+
+/* Reusable themed colour tokens */
+const C = {
+  bg0:   "var(--bg-0)",
+  bg1:   "var(--bg-1)",
+  bg2:   "var(--bg-2)",
+  line:  "var(--line)",
+  line2: "var(--line-2)",
+  ink0:  "var(--ink-0)",
+  ink1:  "var(--ink-1)",
+  ink2:  "var(--ink-2)",
+  ink3:  "var(--ink-3)",
+  ink4:  "var(--ink-4)",
+  up:    "var(--up)",
+  down:  "var(--down)",
+  accent:"var(--accent)",
+  accent2:"var(--accent-2)",
+};
 
 export default function BillingPage() {
   const [stage,   setStage]   = useState<"qr" | "utr">("qr");
@@ -18,13 +35,9 @@ export default function BillingPage() {
   const [success, setSuccess] = useState("");
   const [copied,  setCopied]  = useState(false);
 
-  // Build UPI deep-link + QR (encodes the link)
   const upiLink = useMemo(() => {
     const params = new URLSearchParams({
-      pa: UPI_ID,
-      pn: PAYEE,
-      am: String(AMOUNT),
-      cu: "INR",
+      pa: UPI_ID, pn: PAYEE, am: String(AMOUNT), cu: "INR",
       tn: "NSE Scanner Pro - 30 days access",
     });
     return `upi://pay?${params.toString()}`;
@@ -43,14 +56,11 @@ export default function BillingPage() {
 
   async function handleSubmit() {
     setLoading(true); setError(""); setSuccess("");
-
     const clean = utr.trim().replace(/\s+/g, "");
     if (!/^[A-Za-z0-9]{10,22}$/.test(clean)) {
       setError("UTR must be 10–22 letters/digits. Copy it exactly from your UPI app's transaction history.");
-      setLoading(false);
-      return;
+      setLoading(false); return;
     }
-
     try {
       const res = await fetch("/api/upi/submit", {
         method:  "POST",
@@ -58,41 +68,52 @@ export default function BillingPage() {
         body:    JSON.stringify({ utr: clean, upi_app: app, notes }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Submission failed");
-        setLoading(false);
-        return;
-      }
+      if (!res.ok) { setError(data.error || "Submission failed"); setLoading(false); return; }
       setSuccess(data.message || "Submitted! We'll verify within 24 hours.");
       setUtr(""); setNotes("");
-    } catch {
-      setError("Network error. Please try again.");
-    }
+    } catch { setError("Network error. Please try again."); }
     setLoading(false);
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center">
-              <TrendingUp size={20} className="text-white" />
+    <div style={{
+      minHeight: "100vh", background: C.bg0, color: C.ink0,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "40px 16px", fontFamily: "inherit",
+    }}>
+      <div style={{ width: "100%", maxWidth: 460 }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", marginBottom: 18 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: 9,
+              background: "linear-gradient(135deg, #2bd07a 0%, #5b8cff 100%)",
+              display: "grid", placeItems: "center",
+              boxShadow: "0 4px 14px -4px rgba(91,140,255,.45)",
+            }}>
+              <TrendingUp size={18} color="#fff" />
             </div>
-            <span className="font-bold text-xl text-white">NSE Scanner Pro</span>
+            <span style={{ fontWeight: 700, fontSize: 18, color: C.ink0 }}>NSE Scanner Pro</span>
           </Link>
-          <h1 className="text-2xl font-bold text-white">Activate subscription</h1>
-          <p className="text-slate-400 mt-1">Pay ₹99 via UPI · Activated within 24 hours</p>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.ink0 }}>Activate subscription</h1>
+          <p style={{ margin: "6px 0 0", color: C.ink2, fontSize: 13 }}>
+            Pay ₹99 via UPI · Activated within 24 hours
+          </p>
         </div>
 
-        <div className="card p-7">
-          {/* Plan summary */}
-          <div className="text-center mb-6">
-            <div className="text-5xl font-bold text-white">₹{AMOUNT}</div>
-            <div className="text-slate-400 text-sm mt-1">for 30 days • renew anytime</div>
+        {/* Card */}
+        <div style={{
+          background: C.bg1, border: `1px solid ${C.line}`,
+          borderRadius: 16, padding: 26,
+        }}>
+          {/* Price */}
+          <div style={{ textAlign: "center", marginBottom: 22 }}>
+            <div style={{ fontSize: 44, fontWeight: 700, color: C.ink0, lineHeight: 1.1 }}>₹{AMOUNT}</div>
+            <div style={{ color: C.ink2, fontSize: 13, marginTop: 4 }}>for 30 days · renew anytime</div>
           </div>
 
-          <ul className="space-y-2.5 mb-6">
+          {/* Features */}
+          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 22px", display: "flex", flexDirection: "column", gap: 9 }}>
             {[
               "500+ NSE stocks scanned daily",
               "Big Movers + Chart Pattern + W-Pattern",
@@ -101,160 +122,179 @@ export default function BillingPage() {
               "Real-time Supabase alerts",
               "9:20 AM & 3:00 PM IST scans",
             ].map(f => (
-              <li key={f} className="flex items-center gap-2.5 text-sm text-slate-300">
-                <CheckCircle size={15} className="text-green-400 flex-shrink-0" />
+              <li key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: C.ink1 }}>
+                <CheckCircle size={15} color={C.up} style={{ flexShrink: 0 }} />
                 {f}
               </li>
             ))}
           </ul>
 
-          {/* Tab switcher */}
-          <div className="flex gap-1 mb-5 p-1 bg-[#0f172a] rounded-lg">
-            <button
-              onClick={() => setStage("qr")}
-              className={`flex-1 py-2 rounded text-sm font-medium transition-colors ${
-                stage === "qr" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              1. Pay ₹99 via UPI
-            </button>
-            <button
-              onClick={() => setStage("utr")}
-              className={`flex-1 py-2 rounded text-sm font-medium transition-colors ${
-                stage === "utr" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              2. Confirm Payment
-            </button>
+          {/* Stage switcher */}
+          <div style={{
+            display: "flex", gap: 4, marginBottom: 18, padding: 4,
+            background: C.bg2, borderRadius: 9, border: `1px solid ${C.line}`,
+          }}>
+            {(["qr", "utr"] as const).map((s, idx) => (
+              <button
+                key={s}
+                onClick={() => setStage(s)}
+                style={{
+                  flex: 1, padding: "9px 0", border: "none", borderRadius: 6,
+                  background: stage === s ? C.accent : "transparent",
+                  color:      stage === s ? "#fff"    : C.ink2,
+                  fontSize: 13, fontWeight: 500, cursor: "pointer",
+                  transition: "background .15s ease, color .15s ease",
+                  fontFamily: "inherit",
+                }}>
+                {idx === 0 ? "1. Pay ₹99 via UPI" : "2. Confirm Payment"}
+              </button>
+            ))}
           </div>
 
-          {/* ── STAGE 1: QR + UPI ID ─────────────────────────────────── */}
+          {/* ──── STAGE 1: QR ──────────────────────────────────────── */}
           {stage === "qr" && (
-            <div className="space-y-4">
-              <div className="bg-white p-4 rounded-xl flex flex-col items-center">
-                <img
-                  src={qrSrc}
-                  alt="Scan with GPay / PhonePe / Paytm"
-                  width={240} height={240}
-                  className="rounded-lg"
-                />
-                <p className="text-xs text-slate-700 mt-2 font-medium">
-                  Scan with GPay / PhonePe / Paytm / BHIM
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {/* QR (kept on white card — UPI scanners read it best on white) */}
+              <div style={{
+                background: "#ffffff", padding: 16, borderRadius: 12,
+                display: "flex", flexDirection: "column", alignItems: "center",
+                border: `1px solid ${C.line}`,
+              }}>
+                <img src={qrSrc} alt="Scan with any UPI app" width={240} height={240} style={{ borderRadius: 8 }} />
+                <p style={{ margin: "8px 0 0", fontSize: 11.5, color: "#334155", fontWeight: 500 }}>
+                  Scan with GPay · PhonePe · Paytm · BHIM
                 </p>
               </div>
 
-              {/* UPI ID copy button */}
-              <div className="bg-[#0f172a] border border-[#1e293b] rounded-lg p-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500">UPI ID</div>
-                  <div className="text-sm font-mono text-white truncate">{UPI_ID}</div>
+              {/* UPI ID + Copy */}
+              <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                padding: "10px 14px", background: C.bg2, border: `1px solid ${C.line}`, borderRadius: 10,
+              }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.10em", color: C.ink3 }}>UPI ID</div>
+                  <div style={{
+                    fontFamily: "var(--mono)", fontSize: 13, color: C.ink0,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>{UPI_ID}</div>
                 </div>
-                <button
-                  onClick={copyUpi}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex-shrink-0"
-                >
+                <button onClick={copyUpi} style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "8px 12px", border: "none", borderRadius: 6,
+                  background: C.accent, color: "#fff",
+                  fontSize: 12, fontWeight: 500, cursor: "pointer", flexShrink: 0,
+                  fontFamily: "inherit",
+                }}>
                   {copied ? <Check size={13} /> : <Copy size={13} />}
                   {copied ? "Copied" : "Copy"}
                 </button>
               </div>
 
-              {/* Mobile: deep-link button to open UPI app directly */}
+              {/* Mobile deep-link */}
               <a
                 href={upiLink}
-                className="block w-full bg-green-600 hover:bg-green-500 text-white text-center py-3 rounded-xl font-semibold transition-colors md:hidden"
+                style={{
+                  display: "none", width: "100%", padding: 12, textAlign: "center",
+                  background: C.up, color: "#fff", borderRadius: 10,
+                  fontSize: 14, fontWeight: 600, textDecoration: "none",
+                }}
+                className="upi-mobile-link"
               >
                 Open UPI App to Pay ₹{AMOUNT}
               </a>
+              <style>{`@media (max-width: 768px) { .upi-mobile-link { display: block !important; } }`}</style>
 
-              <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-3 text-xs text-slate-300 leading-relaxed">
-                <p className="font-medium text-blue-300 mb-1">After payment:</p>
-                <p>Click <b>"2. Confirm Payment"</b> above and paste the <b>UTR / transaction reference</b> from your UPI app (look for it on the success screen or transaction history).</p>
+              {/* Help banner */}
+              <div style={{
+                padding: 12, borderRadius: 9,
+                background: "color-mix(in oklab, var(--accent) 8%, transparent)",
+                border: `1px solid color-mix(in oklab, var(--accent) 25%, transparent)`,
+                fontSize: 11.5, lineHeight: 1.55, color: C.ink1,
+              }}>
+                <div style={{ fontWeight: 600, color: C.accent2, marginBottom: 3 }}>After payment:</div>
+                Click <b>"2. Confirm Payment"</b> above and paste your <b>UTR / transaction reference</b> (12-digit ID from your UPI app's success screen).
               </div>
 
-              <button
-                onClick={() => setStage("utr")}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-xl font-semibold transition-colors"
-              >
+              <button onClick={() => setStage("utr")} style={{
+                width: "100%", padding: "13px", border: "none", borderRadius: 11,
+                background: C.accent, color: "#fff",
+                fontSize: 14.5, fontWeight: 600, cursor: "pointer",
+                fontFamily: "inherit", transition: "filter .15s ease",
+              }}
+                onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.1)")}
+                onMouseLeave={e => (e.currentTarget.style.filter = "none")}>
                 I've Paid — Confirm Now →
               </button>
             </div>
           )}
 
-          {/* ── STAGE 2: UTR submission ──────────────────────────────── */}
+          {/* ──── STAGE 2: UTR ─────────────────────────────────────── */}
           {stage === "utr" && (
-            <div className="space-y-4">
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {success && (
-                <div className="bg-green-900/20 border border-green-700/40 rounded-lg p-4 text-sm text-green-300">
-                  <p className="font-medium mb-1">✓ Payment Submitted</p>
-                  <p className="text-green-400/80">{success}</p>
-                  <Link href="/dashboard" className="inline-block mt-3 text-blue-400 hover:text-blue-300 underline">
-                    ← Back to Dashboard
-                  </Link>
+                <div style={{
+                  padding: 14, borderRadius: 10,
+                  background: "color-mix(in oklab, var(--up) 12%, transparent)",
+                  border: `1px solid color-mix(in oklab, var(--up) 35%, transparent)`,
+                  color: C.up, fontSize: 13,
+                }}>
+                  <p style={{ margin: "0 0 4px", fontWeight: 600 }}>✓ Payment Submitted</p>
+                  <p style={{ margin: 0, opacity: 0.85 }}>{success}</p>
+                  <Link href="/dashboard" style={{
+                    display: "inline-block", marginTop: 12, color: C.accent,
+                    textDecoration: "underline", fontSize: 13,
+                  }}>← Back to Dashboard</Link>
                 </div>
               )}
 
               {!success && (
                 <>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
-                      UPI App used
-                    </label>
-                    <select
-                      value={app}
-                      onChange={e => setApp(e.target.value)}
-                      className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-3 py-2.5 text-white text-sm focus:border-blue-500 outline-none"
-                    >
-                      <option>GPay</option>
-                      <option>PhonePe</option>
-                      <option>Paytm</option>
-                      <option>BHIM</option>
-                      <option>Other</option>
+                  <Field label="UPI App used">
+                    <select value={app} onChange={e => setApp(e.target.value)} style={inputStyle()}>
+                      <option>GPay</option><option>PhonePe</option><option>Paytm</option>
+                      <option>BHIM</option><option>Other</option>
                     </select>
-                  </div>
+                  </Field>
 
-                  <div>
-                    <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
-                      Transaction Reference (UTR) <span className="text-red-400">*</span>
-                    </label>
+                  <Field
+                    label="Transaction Reference (UTR)" required
+                    hint='Look for "UTR" / "Transaction ID" / "Reference number" in your UPI app. Usually 12 digits.'
+                  >
                     <input
-                      type="text"
-                      value={utr}
-                      onChange={e => setUtr(e.target.value)}
-                      placeholder="e.g. 414328765432"
-                      className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-3 py-2.5 text-white font-mono text-sm focus:border-blue-500 outline-none"
-                      maxLength={22}
+                      type="text" value={utr} onChange={e => setUtr(e.target.value)}
+                      placeholder="e.g. 414328765432" maxLength={22}
+                      style={{ ...inputStyle(), fontFamily: "var(--mono)" }}
                     />
-                    <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
-                      Look for "UTR" / "Transaction ID" / "Reference number" in your UPI app's transaction screen.
-                      Usually 12 digits. We'll verify within 24 hours.
-                    </p>
-                  </div>
+                  </Field>
 
-                  <div>
-                    <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
-                      Notes (optional)
-                    </label>
+                  <Field label="Notes (optional)">
                     <textarea
-                      value={notes}
-                      onChange={e => setNotes(e.target.value)}
-                      placeholder="Anything we should know? (e.g. payment from spouse's account)"
-                      className="w-full bg-[#0f172a] border border-[#1e293b] rounded-lg px-3 py-2.5 text-white text-sm focus:border-blue-500 outline-none resize-none"
-                      rows={2}
-                      maxLength={500}
+                      value={notes} onChange={e => setNotes(e.target.value)}
+                      placeholder="Anything we should know? (e.g. paid from spouse's account)"
+                      rows={2} maxLength={500}
+                      style={{ ...inputStyle(), resize: "none" }}
                     />
-                  </div>
+                  </Field>
 
                   {error && (
-                    <p className="text-red-400 text-sm bg-red-900/20 px-3 py-2 rounded-lg whitespace-pre-wrap">
-                      {error}
-                    </p>
+                    <p style={{
+                      margin: 0, padding: "8px 12px", borderRadius: 8,
+                      background: "color-mix(in oklab, var(--down) 12%, transparent)",
+                      border: `1px solid color-mix(in oklab, var(--down) 30%, transparent)`,
+                      color: C.down, fontSize: 13, whiteSpace: "pre-wrap",
+                    }}>{error}</p>
                   )}
 
                   <button
-                    onClick={handleSubmit}
-                    disabled={loading || !utr.trim()}
-                    className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-semibold transition-colors"
-                  >
+                    onClick={handleSubmit} disabled={loading || !utr.trim()}
+                    style={{
+                      width: "100%", padding: "13px", border: "none", borderRadius: 11,
+                      background: C.accent, color: "#fff",
+                      fontSize: 14.5, fontWeight: 600,
+                      cursor: (loading || !utr.trim()) ? "not-allowed" : "pointer",
+                      opacity: (loading || !utr.trim()) ? 0.5 : 1,
+                      fontFamily: "inherit",
+                    }}>
                     {loading ? "Submitting…" : "Submit for Verification"}
                   </button>
                 </>
@@ -262,12 +302,55 @@ export default function BillingPage() {
             </div>
           )}
 
-          <div className="mt-5 pt-4 border-t border-[#1e293b] flex items-center justify-between text-xs text-slate-500">
-            <Link href="/dashboard" className="hover:text-slate-300">← Dashboard</Link>
-            <span>Verified within 24 hours</span>
+          {/* Footer */}
+          <div style={{
+            marginTop: 18, paddingTop: 16, borderTop: `1px solid ${C.line}`,
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            fontSize: 11.5, color: C.ink3,
+          }}>
+            <Link href="/dashboard" style={{ color: C.ink3, textDecoration: "none" }}>← Dashboard</Link>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <Smartphone size={12} /> Direct UPI · verified within 24 hours
+            </span>
           </div>
         </div>
+
+        <p style={{ textAlign: "center", marginTop: 14, fontSize: 10.5, color: C.ink4 }}>
+          Payments go directly to our UPI account · No card data stored anywhere
+        </p>
       </div>
     </div>
   );
+}
+
+/* ── Small helpers ─────────────────────────────────────── */
+function Field({ label, required, hint, children }: {
+  label: string; required?: boolean; hint?: string; children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label style={{
+        display: "block", fontSize: 10.5, fontWeight: 500,
+        textTransform: "uppercase", letterSpacing: "0.10em",
+        color: "var(--ink-2)", marginBottom: 6,
+      }}>
+        {label} {required && <span style={{ color: "var(--down)" }}>*</span>}
+      </label>
+      {children}
+      {hint && (
+        <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--ink-3)", lineHeight: 1.5 }}>
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function inputStyle(): React.CSSProperties {
+  return {
+    width: "100%", padding: "10px 12px",
+    background: "var(--bg-2)", border: "1px solid var(--line)",
+    borderRadius: 8, color: "var(--ink-0)",
+    fontSize: 13, outline: "none", fontFamily: "inherit",
+  };
 }
