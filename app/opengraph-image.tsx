@@ -174,7 +174,7 @@ export default async function OG() {
             </span>
             <span style={{ color: C.ink3 }}>·</span>
             <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ color: C.green, fontWeight: 600 }}>10-day</span>
+              <span style={{ color: C.green, fontWeight: 600 }}>30-day</span>
               <span>free trial · no card</span>
             </span>
           </div>

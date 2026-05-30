@@ -142,7 +142,7 @@ export default function LandingPage() {
             display: "inline-flex", alignItems: "center", gap: 6,
             boxShadow: "0 8px 24px -8px rgba(91,140,255,.5)",
           }}>
-            Start 10-day free trial <ChevronRight size={18} />
+            Start 30-day free trial <ChevronRight size={18} />
           </Link>
           <Link href="/login" style={{
             color: C.ink2, fontSize: 14, textDecoration: "none",
@@ -313,7 +313,7 @@ export default function LandingPage() {
               border: `1px solid color-mix(in oklab, var(--up) 30%, transparent)`,
               color: C.up, fontSize: 12.5,
             }}>
-              <CheckCircle size={13} /> 10-day free trial — no card needed
+              <CheckCircle size={13} /> 30-day free trial — no card needed
             </div>
           </div>
 
@@ -388,7 +388,7 @@ export default function LandingPage() {
         background: `linear-gradient(180deg, ${C.bg0} 0%, color-mix(in oklab, var(--accent) 6%, var(--bg-0)) 100%)`,
       }}>
         <h2 style={{ fontSize: 28, fontWeight: 700, margin: "0 0 14px", color: C.ink0, letterSpacing: "-0.01em" }}>
-          Try it free for 10 days
+          Try it free for 30 days
         </h2>
         <p style={{ color: C.ink2, fontSize: 15, margin: "0 0 28px" }}>
           No card required. Cancel anytime. Built by a trader for Indian markets.

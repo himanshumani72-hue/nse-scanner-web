@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "NSE Scanner Pro — 12 NSE pattern scanners in one dashboard",
   description:
-    "12 independent scanners run on 500+ NSE stocks every trading day. Cross-validation surfaces only high-conviction setups with stop loss & target. ₹99/month, 10-day free trial.",
+    "12 independent scanners run on 500+ NSE stocks every trading day. Cross-validation surfaces only high-conviction setups with stop loss & target. ₹99/month, 30-day free trial.",
   keywords: [
     "NSE scanner", "stock pattern scanner India", "swing trading India",
     "Indian stock market alerts", "52 week high breakout", "bulk deals tracker",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "NSE Scanner Pro — Pattern detection for Indian stocks",
     description:
-      "12 scanners. One dashboard. Cross-validation surfaces only high-conviction NSE setups with stop loss & target. ₹99/month, 10-day free trial.",
+      "12 scanners. One dashboard. Cross-validation surfaces only high-conviction NSE setups with stop loss & target. ₹99/month, 30-day free trial.",
     url: SITE_URL,
     siteName: "NSE Scanner Pro",
     locale: "en_IN",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "NSE Scanner Pro — 12 NSE pattern scanners",
     description:
-      "Cross-validated NSE setups with stop loss & target. ₹99/month, 10-day free trial.",
+      "Cross-validated NSE setups with stop loss & target. ₹99/month, 30-day free trial.",
     images: [`${SITE_URL}/twitter-image`],
   },
   robots: { index: true, follow: true },
