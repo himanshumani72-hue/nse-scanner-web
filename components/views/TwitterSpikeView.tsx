@@ -93,9 +93,11 @@ export default function TwitterSpikeView({ alerts }: { alerts: Alert[] }) {
               <span className="num" style={{ textAlign: "right", fontSize: 12, fontWeight: 600, color: mlScore == null ? "var(--ink-4)" : (parseFloat(String(mlScore)) >= 0 ? "var(--up)" : "var(--down)") }}>
                 {mlScore == null || mlScore === "" ? "—" : `${parseFloat(String(mlScore)) >= 0 ? "+" : ""}${parseFloat(String(mlScore)).toFixed(1)}%`}
               </span>
-              <span style={{ fontSize: 11, color: "var(--ink-2)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+              <span style={{ fontSize: 11, color: tweet ? "var(--ink-2)" : "var(--ink-4)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                 title={tweet}>
-                {tweet.slice(0, 110)}{tweet.length > 110 ? "…" : ""}
+                {tweet
+                  ? `${tweet.slice(0, 110)}${tweet.length > 110 ? "…" : ""}`
+                  : `Google Trends interest +${Math.round((mult - 1) * 100)}% vs intraday baseline`}
               </span>
             </div>
           );

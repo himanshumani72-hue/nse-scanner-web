@@ -15,6 +15,11 @@ export default function BrokerageView({ alerts }: { alerts: Alert[] }) {
   const strongBuy = alerts.filter(a => String(a.data["Signal"]) === "STRONG BUY");
   const buy       = alerts.filter(a => String(a.data["Signal"]) === "BUY");
   const sells     = alerts.filter(a => String(a.data["Signal"]).includes("SELL"));
+  const neutral   = alerts.filter(a => {
+    const s = String(a.data["Signal"] ?? "");
+    // anything not already bucketed (NEUTRAL, empty, or unrecognised values)
+    return s !== "STRONG BUY" && s !== "BUY" && !s.includes("SELL");
+  });
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -51,6 +56,14 @@ export default function BrokerageView({ alerts }: { alerts: Alert[] }) {
           <SectionHdr icon="🔴" title="SELL / DOWNGRADE Warnings" count={sells.length}
             hint="Brokers cutting targets or downgrading · Be cautious if you hold these" />
           <BrokerTable alerts={sells} tone="down" />
+        </div>
+      )}
+
+      {neutral.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionHdr icon="⚪" title="NEUTRAL / Mixed Coverage" count={neutral.length}
+            hint="Mixed broker views — upgrades & downgrades cancel out · No clear directional bias" />
+          <BrokerTable alerts={neutral} tone="warn" />
         </div>
       )}
 

@@ -3,7 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* ─────────────────────────────────────────────────────────
+   DARK THEME (default)
+   ───────────────────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
   --bg-0:      #07090d;
   --bg-1:      #0b0f15;
   --bg-2:      #10151d;
@@ -29,6 +33,36 @@
   --mono:      'JetBrains Mono', ui-monospace, monospace;
 }
 
+/* ─────────────────────────────────────────────────────────
+   LIGHT THEME
+   White background · black text · blue accents
+   Semantic green/red kept for up/down signals (more vivid)
+   ───────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-0:      #ffffff;             /* page background */
+  --bg-1:      #f7f9fc;             /* card surface */
+  --bg-2:      #eef2f7;             /* raised / row-stripe */
+  --bg-3:      #e3e9f1;             /* hover */
+  --line:      #dde3ec;             /* default border */
+  --line-2:    #c7d0db;             /* stronger border */
+  --ink-0:     #0a0f1c;             /* primary text — near black */
+  --ink-1:     #1f2937;             /* secondary text */
+  --ink-2:     #475569;             /* tertiary text */
+  --ink-3:     #6b7280;             /* muted text */
+  --ink-4:     #94a3b8;             /* placeholder */
+  --up:        #0d9968;             /* green darker for light bg contrast */
+  --up-bg:     rgba(13,153,104,.08);
+  --up-line:   rgba(13,153,104,.30);
+  --down:      #dc2626;             /* red */
+  --down-bg:   rgba(220,38,38,.08);
+  --down-line: rgba(220,38,38,.30);
+  --accent:    #2563eb;             /* primary blue */
+  --accent-2:  #1d4ed8;             /* deeper blue */
+  --warn:      #c2680b;             /* amber */
+  --warn-bg:   rgba(194,104,11,.10);
+  --violet:    #7c3aed;
+}
+
 * { box-sizing: border-box; }
 html, body {
   margin: 0; padding: 0;
@@ -36,6 +70,19 @@ html, body {
   color: var(--ink-0);
   font-family: 'Geist', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+/* Light theme: tweak the scrollbar so it's not invisible on white */
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #c7d0db; }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Light theme: native form controls inherit dark colours by default — fix them */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select,
+[data-theme="light"] button {
+  color: var(--ink-0);
 }
 
 .num {
