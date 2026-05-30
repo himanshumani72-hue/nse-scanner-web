@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createPlainClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 export function createClient() {
@@ -16,29 +17,28 @@ export function createClient() {
 }
 
 export function createServiceClient() {
-  // Accept either env-var name — Python scanners use SUPABASE_SERVICE_KEY,
-  // Next.js convention is SUPABASE_SERVICE_ROLE_KEY. Whichever is set, use it.
+  // IMPORTANT: use @supabase/supabase-js (NOT @supabase/ssr) for the
+  // service-role client. createServerClient from @supabase/ssr is cookie-aware
+  // and applies the logged-in user's JWT on top of the service key, which
+  // re-enables RLS and hides other users' rows — the exact bug we just hit.
+  //
+  // The plain client honours the service-role key cleanly and bypasses RLS.
   const serviceKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_SERVICE_KEY ||
     "";
 
-  if (!serviceKey && process.env.NODE_ENV !== "production") {
-    console.error(
-      "[supabase] No service-role key found. Set SUPABASE_SERVICE_ROLE_KEY " +
-      "or SUPABASE_SERVICE_KEY in env vars. Admin reads, webhook writes, and " +
-      "RLS-bypassing operations will fall back to anonymous access."
-    );
+  if (!serviceKey) {
+    console.error("[supabase] No service-role key found. Admin/webhook ops will fail.");
   }
 
-  const cookieStore = cookies();
-  return createServerClient(
+  return createPlainClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     serviceKey,
     {
-      cookies: {
-        getAll()       { return cookieStore.getAll(); },
-        setAll(list)   { list.forEach(({ name, value, options }) => cookieStore.set(name, value, options)); },
+      auth: {
+        autoRefreshToken: false,
+        persistSession:   false,
       },
     }
   );
