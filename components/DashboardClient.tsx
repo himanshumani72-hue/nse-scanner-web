@@ -54,7 +54,6 @@ const ICONS = {
   Down:    () => <svg width={10} height={10} viewBox="0 0 10 10"><path d="M5 9 L9 2 L1 2 Z" fill="currentColor"/></svg>,
   Rocket:  () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M6 1.5 C6 1.5 9.5 2.5 9.5 6.5 L7 9 L5 7 L2.5 9.5 C2.5 9.5 1 9 1 7.5 L3.5 5 L2 2.5 C2 2.5 5 1.5 6 1.5Z" strokeLinejoin="round"/><circle cx="7.5" cy="4.5" r="0.8" fill="currentColor"/></svg>,
   Danger:  () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M6 1.5 L10.5 9.5 H1.5 Z" strokeLinejoin="round"/><line x1="6" y1="5" x2="6" y2="7.5" strokeLinecap="round"/><circle cx="6" cy="8.8" r="0.4" fill="currentColor" stroke="none"/></svg>,
-  Search:  () => <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6" cy="6" r="4.25"/><path d="M9.5 9.5 L12.5 12.5" strokeLinecap="round"/></svg>,
 };
 
 export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], marketData, panelsData, healthData }: Props) {
@@ -182,15 +181,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           <span className="num" style={{ fontSize: 11.5, color: "var(--ink-3)" }}>{clock}</span>
         </div>
 
-        {/* Search bar */}
-        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", maxWidth: 460, padding: "0 12px", height: 34, background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 9, color: "var(--ink-3)" }}>
-            <ICONS.Search/>
-            <span style={{ fontSize: 12.5 }}>Search ticker, pattern, sector…</span>
-            <div style={{ flex: 1 }}/>
-            <kbd style={{ fontFamily: "var(--mono)", fontSize: 10, padding: "2px 6px", border: "1px solid var(--line-2)", borderRadius: 4, color: "var(--ink-2)", background: "var(--bg-3)" }}>⌘ K</kbd>
-          </div>
-        </div>
+        {/* Flexible spacer — pushes the right-side controls to the edge */}
+        <div style={{ flex: 1 }} />
 
         {/* Right controls */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
