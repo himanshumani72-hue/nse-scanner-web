@@ -22,15 +22,29 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  const isPublic = path === "/" || path.startsWith("/login") || path.startsWith("/register") || path.startsWith("/auth") || path.startsWith("/api");
+  const isPublic = path === "/" || path.startsWith("/login") || path.startsWith("/register") || path.startsWith("/auth") || path.startsWith("/api") || path.startsWith("/opengraph-image") || path.startsWith("/twitter-image") || path.startsWith("/twitter-card");
+  const isVerifyPending = path === "/auth/verify-pending";
 
   // Redirect unauthenticated users away from protected pages
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Redirect authenticated users away from login/register
-  if (user && (path === "/login" || path === "/register")) {
+  // ── Email-verification gate ────────────────────────────────────────────
+  // If user is logged in but hasn't confirmed their email yet, they can
+  // only see the "verify your email" page — no dashboard, no billing,
+  // no admin panel. Their account exists in Supabase but is gated.
+  if (user && !user.email_confirmed_at && !isVerifyPending && !isPublic) {
+    return NextResponse.redirect(new URL("/auth/verify-pending", request.url));
+  }
+
+  // Redirect authenticated AND VERIFIED users away from login/register
+  if (user && user.email_confirmed_at && (path === "/login" || path === "/register")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // Once verified, don't keep them on the pending page
+  if (user && user.email_confirmed_at && isVerifyPending) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
