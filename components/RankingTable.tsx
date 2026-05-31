@@ -20,10 +20,17 @@ function ScoreCell({ v, highlight }: { v: any; highlight?: boolean }) {
 }
 
 /** Beta cell — colour-codes risk level so users see at a glance.
- *  β > 1.3 = red (high-risk amplifier); 0.7 - 1.3 = neutral; < 0.7 = green (defensive). */
+ *  β > 1.3 = red (high-risk amplifier); 0.7 - 1.3 = neutral; < 0.7 = green (defensive).
+ *  Missing data renders as "—" (not 1.00) so users can tell the difference
+ *  between "this stock is market-like" and "we don't have beta data yet". */
 function BetaCell({ v }: { v: any }) {
-  const n = parseFloat(String(v ?? 1));
-  if (!isFinite(n)) return <span className="num" style={{ color: "var(--ink-4)" }}>—</span>;
+  if (v === null || v === undefined || v === "") {
+    return <span className="num" style={{ color: "var(--ink-4)" }}>—</span>;
+  }
+  const n = parseFloat(String(v));
+  if (!isFinite(n) || n === 0) {
+    return <span className="num" style={{ color: "var(--ink-4)" }}>—</span>;
+  }
   const color = n >= 1.5 ? "var(--down)"
               : n >= 1.2 ? "var(--warn)"
               : n >= 0.8 ? "var(--ink-1)"
