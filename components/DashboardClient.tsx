@@ -76,6 +76,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
   const [clock,       setClock]      = useState("");
+  // 0=Sun, 1=Mon, … 6=Sat (in IST, not browser-local)
+  const [istWeekday,  setIstWeekday] = useState<number>(-1);
   const supabase = createClient();
   const { theme, toggle } = useTheme();
 
@@ -84,6 +86,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
       const d = new Date();
       const ist = new Date(d.getTime() + 5.5 * 3600000);
       setClock(ist.toISOString().slice(11, 19) + " IST");
+      setIstWeekday(ist.getUTCDay());   // UTC because `ist` is offset-adjusted
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -175,9 +178,17 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
             if (parts.length >= 2) {
               const h = parseInt(parts[0]), m = parseInt(parts[1]);
               const t = h * 60 + m;
-              const isOpen = t >= 9*60+15 && t <= 15*60+30;
+              const isWeekend = istWeekday === 0 || istWeekday === 6;   // Sun=0, Sat=6
+              const inMarketHours = t >= 9*60+15 && t <= 15*60+30;
+              const isOpen   = !isWeekend && inMarketHours;
               const dotColor = isLive ? "var(--up)" : isOpen ? "var(--up)" : "var(--ink-3)";
-              const label = isLive ? "Live update!" : isOpen ? "Market open" : "Markets closed";
+              const label    = isLive
+                ? "Live update!"
+                : isOpen
+                  ? "Market open"
+                  : isWeekend
+                    ? "Markets closed · weekend"
+                    : "Markets closed";
               return (<><PulseDot color={dotColor} /><span style={{ fontSize: 12, color: isOpen ? "var(--up)" : "var(--ink-1)" }}>{label}</span></>);
             }
             return <><PulseDot color="var(--accent)"/><span style={{ fontSize: 12, color: "var(--ink-1)" }}>Loading…</span></>;
