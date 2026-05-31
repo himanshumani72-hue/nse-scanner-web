@@ -1,4 +1,5 @@
 "use client";
+import { ExternalLink } from "lucide-react";
 
 function tv(symbol: string) {
   return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
@@ -18,6 +19,37 @@ function ScoreCell({ v, highlight }: { v: any; highlight?: boolean }) {
   );
 }
 
+/** Beta cell — colour-codes risk level so users see at a glance.
+ *  β > 1.3 = red (high-risk amplifier); 0.7 - 1.3 = neutral; < 0.7 = green (defensive). */
+function BetaCell({ v }: { v: any }) {
+  const n = parseFloat(String(v ?? 1));
+  if (!isFinite(n)) return <span className="num" style={{ color: "var(--ink-4)" }}>—</span>;
+  const color = n >= 1.5 ? "var(--down)"
+              : n >= 1.2 ? "var(--warn)"
+              : n >= 0.8 ? "var(--ink-1)"
+              : "var(--up)";
+  return (
+    <span className="num" style={{ color, fontSize: 13, fontWeight: 600 }}
+      title={
+        n >= 1.5 ? "Very high beta — amplifies market moves ~1.5×+. Risky in choppy markets."
+        : n >= 1.2 ? "High beta — moves more than Nifty. Good in trending bull markets."
+        : n >= 0.8 ? "Market-like beta — moves roughly with Nifty."
+        : "Low beta / defensive — moves less than market. Steady but slow."
+      }>
+      {n.toFixed(2)}
+    </span>
+  );
+}
+
+/** Header cell with optional tooltip describing the column. */
+function HeaderCell({ label, tip }: { label: string; tip?: string }) {
+  return (
+    <span title={tip} style={{ cursor: tip ? "help" : "default" }}>
+      {label}{tip ? " ⓘ" : ""}
+    </span>
+  );
+}
+
 export default function RankingTable({ panelsData }: { panelsData?: any }) {
   const ranking  = panelsData?.ranking   || [];
   const watchlist = panelsData?.watchlist || [];
@@ -30,8 +62,8 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
     </div>
   );
 
-  // Rank · Stock · Macro · Sector · Event · Stat · Tech · Cross · Persist · Momentum · Final · Reason
-  const COL = "minmax(40px,auto) minmax(120px,1fr) 55px 55px 55px 60px 60px 55px 65px 70px 90px minmax(220px,2fr)";
+  // Rank · Stock · Macro · Sector · Event · Stat · Tech · Cross · Persist · Momentum · Beta · Final · Reason
+  const COL = "minmax(40px,auto) minmax(130px,1fr) 50px 50px 50px 50px 50px 50px 55px 65px 55px 80px minmax(200px,2fr)";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -39,16 +71,34 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
       {/* ── Final Probability Ranking ── */}
       <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, padding: 20 }}>
         <h2 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 600, color: "var(--ink-0)" }}>🏆 Final Probability Ranking — Composite Score</h2>
-        <p style={{ margin: "0 0 16px", fontSize: 11, color: "var(--ink-3)" }}>
+        <p style={{ margin: "0 0 6px", fontSize: 11, color: "var(--ink-3)" }}>
           Weighted: Tech 20% · Cross-scanner 15% · Macro 10% · Sector 10% (live) · Stat 10% · Event 10% · Momentum 10% · Persistence 10% · Seasonal 5%
+        </p>
+        <p style={{ margin: "0 0 16px", fontSize: 11, color: "var(--ink-4)" }}>
+          💡 Hover any column header for an explanation. Click stock name to open TradingView.
+          <span style={{ marginLeft: 8, color: "var(--ink-3)" }}>
+            <b>Cross</b> = number of other scanners that flagged this stock today (signals stacking).
+            <b style={{ marginLeft: 8 }}>Persist</b> = consecutive-day streak in scans (durability).
+            <b style={{ marginLeft: 8 }}>Beta</b> = 90-day volatility vs Nifty.
+          </span>
         </p>
 
         <div style={{ overflowX: "auto" }}>
-          {/* Header */}
+          {/* Header — with tooltips on metric columns */}
           <div style={{ display: "grid", gridTemplateColumns: COL, gap: 12, padding: "8px 12px", color: "var(--ink-3)", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.10em", background: "var(--bg-2)", borderRadius: 8, marginBottom: 4 }}>
-            {["Rank","Stock","Macro","Sector","Event","Stat","Tech","Cross","Persist","Momentum","Final","Reason / Confirmed by"].map(h => (
-              <span key={h}>{h}</span>
-            ))}
+            <HeaderCell label="Rank" />
+            <HeaderCell label="Stock" />
+            <HeaderCell label="Macro"     tip="How well the stock aligns with today's macro conditions (crude / INR / Nifty trend). 0-10." />
+            <HeaderCell label="Sector"    tip="Live sector strength from the Sector Rotation scanner (return + breadth blend). 0-10." />
+            <HeaderCell label="Event"     tip="News sentiment + upcoming results catalysts. 0-10." />
+            <HeaderCell label="Stat"      tip="Statistical position — RSI in healthy zone, price above SMA20/50, alignment. 0-10." />
+            <HeaderCell label="Tech"      tip="Technical setup quality — MACD momentum, EMA alignment, price action. 0-10." />
+            <HeaderCell label="Cross"     tip="Cross-scanner stacking. How many OTHER scanners flagged this stock today. 5+ scanners agreeing = high conviction. 0-10." />
+            <HeaderCell label="Persist"   tip="Persistence streak. How many consecutive days this stock has appeared in scans. Multi-day signals are 3× more reliable than 1-day blips. 0-10." />
+            <HeaderCell label="Momentum"  tip="Today's % + 5-day % + volume ratio. 0-10." />
+            <HeaderCell label="Beta"      tip="90-day beta vs Nifty. >1.5 = high amplifier (risky in chop). 0.8-1.2 = market-like. <0.8 = defensive." />
+            <HeaderCell label="Final" />
+            <HeaderCell label="Reason / Confirmed by" />
           </div>
 
           {/* Rows — no borders */}
@@ -62,7 +112,22 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
                 onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "var(--bg-2)" : "transparent")}>
                 <span style={{ fontSize: 13, color: "var(--ink-3)" }}>{medal}</span>
-                <span className="num" style={{ fontWeight: 700, color: "var(--ink-0)", fontSize: 13 }}>{r["Stock Name"]}</span>
+                <a
+                  href={tv(r["Ticker"] || r["Stock Name"])}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="num"
+                  title={`Open ${r["Stock Name"]} on TradingView`}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 5,
+                    fontWeight: 700, color: "var(--ink-0)", fontSize: 13,
+                    textDecoration: "none",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--accent)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-0)")}>
+                  {r["Stock Name"]}
+                  <ExternalLink size={11} style={{ opacity: 0.5 }} />
+                </a>
                 <ScoreCell v={r.Macro} />
                 <ScoreCell v={r.Sector} />
                 <ScoreCell v={r.Event} />
@@ -71,6 +136,7 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
                 <ScoreCell v={r.Cross} highlight />
                 <ScoreCell v={r.Persistence} />
                 <ScoreCell v={r.Momentum} />
+                <BetaCell v={r.Beta} />
                 <span className="num" style={{ fontWeight: 700, fontSize: 16, color: fsColor, background: fsBg, padding: "2px 10px", borderRadius: 8, display: "inline-block" }}>{fs}</span>
                 {/* Reason + which scanners confirmed */}
                 <div style={{ fontSize: 11, lineHeight: 1.4 }}>
