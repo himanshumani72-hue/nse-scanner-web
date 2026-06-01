@@ -111,7 +111,7 @@ export default function BillingForm({ amount, isPromo, promoLeft, originalPrice 
           }}>
             <Sparkles size={16} color={C.up} style={{ flexShrink: 0 }} />
             <span>
-              <b style={{ color: C.up }}>Launch offer active</b> — {promoLeft} discounted month{promoLeft === 1 ? "" : "s"} left at ₹{amount}. After that, ₹{originalPrice}/mo.
+              <b style={{ color: C.up }}>Launch offer active</b> — {promoLeft} discounted month{promoLeft === 1 ? "" : "s"} left at ₹{amount}. After that, ₹{originalPrice}/month.
             </span>
           </div>
         )}

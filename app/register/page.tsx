@@ -158,7 +158,7 @@ export default function RegisterPage() {
           </Link>
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: C.ink0 }}>Start free trial</h1>
           <p style={{ margin: "6px 0 0", color: C.ink2, fontSize: 13 }}>
-            30 days free · no credit card · ₹49/mo for first 3 months
+            30 days free · no credit card · ₹49/month for first 3 months
           </p>
         </div>
 

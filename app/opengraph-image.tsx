@@ -180,7 +180,7 @@ export default async function OG() {
                   <span style={{ color: C.green, fontWeight: 800, fontSize: 30 }}>
                     ₹{OFFER.price_inr}
                   </span>
-                  <span>/ mo</span>
+                  <span>/ month</span>
                 </span>
                 <span style={{ color: C.ink3 }}>·</span>
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>

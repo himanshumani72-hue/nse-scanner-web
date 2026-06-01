@@ -211,13 +211,13 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
             }}>
               <CreditCard size={13}/>
               {daysLeft <= 5
-                ? `⚠️ ${daysLeft}d left — Upgrade ₹${nextPrice}/mo`
-                : `Upgrade ₹${nextPrice}/mo · ${daysLeft}d trial left`}
+                ? `⚠️ ${daysLeft}d left — Upgrade ₹${nextPrice}/month`
+                : `Upgrade ₹${nextPrice}/month · ${daysLeft}d trial left`}
             </Link>
           )}
           {subStatus !== "trial" && subStatus !== "active" && (
             <Link href="/billing" style={{ display: "flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg,#2bd07a,#3b82f6)", color: "white", fontSize: 11.5, fontWeight: 700, padding: "6px 14px", borderRadius: 8, textDecoration: "none" }}>
-              <CreditCard size={13}/> Subscribe ₹{nextPrice}/mo
+              <CreditCard size={13}/> Subscribe ₹{nextPrice}/month
             </Link>
           )}
 
@@ -330,7 +330,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
             </p>
             {subStatus !== "active" && (
               <Link href="/billing" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--accent)", color: "white", fontSize: 12, fontWeight: 500, padding: "6px 14px", borderRadius: 8, textDecoration: "none" }}>
-                Upgrade to Pro · ₹99/mo
+                Upgrade to Pro · ₹99/month
               </Link>
             )}
           </div>

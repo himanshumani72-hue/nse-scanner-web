@@ -323,7 +323,7 @@ export default function LandingPage() {
                   <div style={{ fontSize: 58, fontWeight: 800, color: C.up, lineHeight: 1, letterSpacing: "-0.02em" }}>
                     ₹{OFFER.price_inr}
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 400, color: C.ink3 }}>/ mo</div>
+                  <div style={{ fontSize: 14, fontWeight: 400, color: C.ink3 }}>/ month</div>
                 </div>
                 {/* Promo tagline */}
                 <div style={{

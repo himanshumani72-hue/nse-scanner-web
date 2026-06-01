@@ -192,7 +192,7 @@ export async function GET() {
               <span style={{ fontSize: 14, color: C.green, fontWeight: 700 }}>NSE Scanner Pro</span>
               <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginTop: 4 }}>
                 <span style={{ fontSize: 32, fontWeight: 800, color: C.green, letterSpacing: "-0.02em" }}>₹49</span>
-                <span style={{ fontSize: 14, color: C.ink2 }}>/ mo</span>
+                <span style={{ fontSize: 14, color: C.ink2 }}>/ month</span>
               </div>
             </div>
           </div>
@@ -211,7 +211,7 @@ export async function GET() {
               30-day free trial
             </span>
             <span style={{ fontSize: 18, color: C.ink3, marginTop: 6 }}>
-              No card · ₹49/mo for first 3 months · Cancel anytime
+              No card · ₹49/month for first 3 months · Cancel anytime
             </span>
           </div>
           <div style={{
