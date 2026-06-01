@@ -74,15 +74,13 @@ export default async function DashboardPage() {
     .maybeSingle();
   const healthData = healthRow ?? null;
 
-  // Last scan: use panel scan_time (updates every run even with 0 alerts)
-  // panel_updater.py writes scan_time in DD/MM/YYYY HH:MM format
-  // Fall back to last alert scanned_at if panels haven't run yet
-  const panelScanTime = panelsRow?.data?.scan_time ?? null;
-  const lastScan = panelScanTime
-    ? new Date(
-        panelScanTime.replace(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2})/, '$3-$2-$1T$4:00+05:30')
-      ).toISOString()
-    : alertsLast;
+  // Last scan = when the SCANNERS actually ran (from alerts table).
+  // We intentionally do NOT use panelsRow.data.scan_time because the Panel
+  // Updater finishes 60-80 minutes after the actual scanners ran, so using
+  // its timestamp makes "Last Scan" jump from e.g. 09:22 → 15:22 even though
+  // the market data was captured at 09:22. The alerts scanned_at is the true
+  // "when did we capture today's signals" time.
+  const lastScan = alertsLast ?? null;
 
   // Days left in trial
   let daysLeft: number | null = null;

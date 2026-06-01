@@ -262,12 +262,14 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           </div>
         ))}
         <div style={{ padding: "16px 24px", display: "flex", flexDirection: "column", justifyContent: "center", minWidth: 200 }}>
-          <span style={{ fontSize: 10.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.10em", fontWeight: 500 }}>Last Scan</span>
+          <span style={{ fontSize: 10.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.10em", fontWeight: 500 }}>Signals Captured</span>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
             <PulseDot color="var(--accent)"/>
             <span className="num" style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--ink-0)" }}>{fmtTime(lastUpdated)}</span>
           </div>
-          <span style={{ fontSize: 10.5, color: "var(--ink-3)", marginTop: 2 }}>Auto-updates on scan</span>
+          <span style={{ fontSize: 10.5, color: "var(--ink-3)", marginTop: 2 }}>
+            {lastUpdated ? "When alerts were scanned" : "Waiting for next scan"}
+          </span>
         </div>
       </div>
 
