@@ -77,9 +77,25 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
 
       {/* ── Final Probability Ranking ── */}
       <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, padding: 20 }}>
-        <h2 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 600, color: "var(--ink-0)" }}>🏆 Final Probability Ranking — Composite Score</h2>
+        <h2 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 600, color: "var(--ink-0)" }}>🏆 Final Probability Ranking — High Conviction Only</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
+          <span style={{
+            fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 999,
+            background: "rgba(43,208,122,.12)", border: "1px solid rgba(43,208,122,.35)",
+            color: "var(--up)",
+          }}>
+            ✓ Minimum 3 scanners must confirm
+          </span>
+          <span style={{
+            fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 999,
+            background: "rgba(91,140,255,.12)", border: "1px solid rgba(91,140,255,.35)",
+            color: "var(--accent-2)",
+          }}>
+            🔥 News catalyst gets priority ranking
+          </span>
+        </div>
         <p style={{ margin: "0 0 6px", fontSize: 11, color: "var(--ink-3)" }}>
-          Weighted: Tech 20% · Cross-scanner 15% · Macro 10% · Sector 10% (live) · Stat 10% · Event 10% · Momentum 10% · Persistence 10% · Seasonal 5%
+          Weighted: News/Event 15% · Tech 15% · Cross-scanner 10% · Macro 10% · Sector 10% · Stat 10% · Momentum 10% · Persistence 10% · Seasonal 5%
         </p>
         <p style={{ margin: "0 0 16px", fontSize: 11, color: "var(--ink-4)" }}>
           💡 Hover any column header for an explanation. Click stock name to open TradingView.
@@ -118,23 +134,49 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
               <div key={i} style={{ display: "grid", gridTemplateColumns: COL, gap: 12, padding: "10px 12px", borderRadius: 8, background: i % 2 === 0 ? "var(--bg-2)" : "transparent", cursor: "pointer", transition: "background .12s ease" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
                 onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "var(--bg-2)" : "transparent")}>
+                {/* Rank medal */}
                 <span style={{ fontSize: 13, color: "var(--ink-3)" }}>{medal}</span>
-                <a
-                  href={tv(r["Ticker"] || r["Stock Name"])}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="num"
-                  title={`Open ${r["Stock Name"]} on TradingView`}
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: 5,
-                    fontWeight: 700, color: "var(--ink-0)", fontSize: 13,
-                    textDecoration: "none",
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.color = "var(--accent)")}
-                  onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-0)")}>
-                  {r["Stock Name"]}
-                  <ExternalLink size={11} style={{ opacity: 0.5 }} />
-                </a>
+
+                {/* Stock name + TradingView link + News Catalyst badge */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                  <a
+                    href={tv(r["Ticker"] || r["Stock Name"])}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="num"
+                    title={`Open ${r["Stock Name"]} on TradingView`}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 5,
+                      fontWeight: 700, color: "var(--ink-0)", fontSize: 13,
+                      textDecoration: "none",
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.color = "var(--accent)")}
+                    onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-0)")}>
+                    {r["Stock Name"]}
+                    <ExternalLink size={11} style={{ opacity: 0.5 }} />
+                  </a>
+                  {/* News catalyst badge — only shown when present */}
+                  {r["News Catalyst"] && r["News Catalyst"] !== "—" && (
+                    <span style={{
+                      display: "inline-flex", alignItems: "center", gap: 4,
+                      fontSize: 9.5, fontWeight: 600, padding: "1px 6px",
+                      borderRadius: 999,
+                      background: r["News Catalyst"]?.includes("Strong")
+                        ? "rgba(43,208,122,.15)"
+                        : r["News Catalyst"]?.includes("Confirmed")
+                          ? "rgba(91,140,255,.15)"
+                          : "rgba(243,181,74,.12)",
+                      color: r["News Catalyst"]?.includes("Strong")
+                        ? "var(--up)"
+                        : r["News Catalyst"]?.includes("Confirmed")
+                          ? "var(--accent-2)"
+                          : "var(--warn)",
+                      border: `1px solid ${r["News Catalyst"]?.includes("Strong") ? "rgba(43,208,122,.35)" : r["News Catalyst"]?.includes("Confirmed") ? "rgba(91,140,255,.35)" : "rgba(243,181,74,.30)"}`,
+                    }}>
+                      {r["News Catalyst"]}
+                    </span>
+                  )}
+                </div>
                 <ScoreCell v={r.Macro} />
                 <ScoreCell v={r.Sector} />
                 <ScoreCell v={r.Event} />
