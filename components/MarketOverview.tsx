@@ -105,7 +105,7 @@ export default function MarketOverview({ data, panelsData, hideRanking }: { data
         </Card>
 
         <Card>
-          <SHdr emoji="📢" title="Upcoming Results (Next 10 Days)" />
+          <SHdr emoji="📢" title="Upcoming Results" />
           {results.length === 0 && <p style={{ color: "var(--ink-3)", fontSize: 12, margin: 0 }}>No upcoming results</p>}
           {results.map((r: any, i: number) => (
             <Row key={i}

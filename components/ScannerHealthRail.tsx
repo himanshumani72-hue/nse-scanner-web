@@ -28,9 +28,26 @@ const ICON: Record<string, string> = {
   BREAKOUT_52W:       "🏔",
   SECTOR_ROTATION:    "🔄",
   BROKER_UPGRADES:    "🎯",
-  TWITTER_SPIKE:      "🐦",
+  TWITTER_SPIKE:      "📡",
   DASHBOARD_MAIN:     "▤",
   PANEL_UPDATER:      "▦",
+};
+
+// Human-readable display names (no raw underscore names shown to users)
+const DISPLAY_NAME: Record<string, string> = {
+  CHART_PATTERN:      "Cup & Handle",
+  W_PATTERN_15M:      "W Pattern 15m",
+  BIG_MOVERS:         "Big Movers",
+  CANNON_MOMENTUM:    "Momentum",
+  BOOMERANG_REVERSAL: "Boomerang",
+  TURNAROUND:         "Turnaround",
+  BULK_DEALS:         "Bulk Deals",
+  BREAKOUT_52W:       "52W Breakouts",
+  SECTOR_ROTATION:    "Sector Rotation",
+  BROKER_UPGRADES:    "Broker Upgrades",
+  TWITTER_SPIKE:      "Buzz Spike",
+  DASHBOARD_MAIN:     "Dashboard",
+  PANEL_UPDATER:      "Panel Updater",
 };
 
 const STATUS_COLOR = {
@@ -99,7 +116,7 @@ export default function ScannerHealthRail({ health }: { health: HealthRow | null
               }}>
               <span style={{ fontSize: 12 }}>{ICON[name] || "•"}</span>
               <span style={{ color: "var(--ink-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {name.replace(/_/g, " ")}
+                {DISPLAY_NAME[name] || name.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
               </span>
               <span className="num" style={{ fontSize: 10.5, color: "var(--ink-3)" }}>
                 {d.rows}
