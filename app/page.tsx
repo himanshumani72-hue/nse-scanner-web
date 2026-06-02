@@ -459,10 +459,13 @@ export default function LandingPage() {
               </div>
               <span style={{ fontWeight: 600, fontSize: 14, color: C.ink1 }}>NSE Scanner Pro</span>
             </div>
-            <div style={{ display: "flex", gap: 18, fontSize: 12.5 }}>
+            <div style={{ display: "flex", gap: 18, fontSize: 12.5, flexWrap: "wrap" }}>
               <Link href="/login"    style={{ color: C.ink2, textDecoration: "none" }}>Sign in</Link>
               <Link href="/register" style={{ color: C.ink2, textDecoration: "none" }}>Sign up</Link>
               <Link href="/billing"  style={{ color: C.ink2, textDecoration: "none" }}>Pricing</Link>
+              <Link href="/terms"    style={{ color: C.ink2, textDecoration: "none" }}>Terms</Link>
+              <Link href="/privacy"  style={{ color: C.ink2, textDecoration: "none" }}>Privacy</Link>
+              <Link href="/refund"   style={{ color: C.ink2, textDecoration: "none" }}>Refund</Link>
             </div>
           </div>
 
