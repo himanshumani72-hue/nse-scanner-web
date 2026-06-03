@@ -84,7 +84,7 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
             background: "rgba(43,208,122,.12)", border: "1px solid rgba(43,208,122,.35)",
             color: "var(--up)",
           }}>
-            ✓ Minimum 3 scanners must confirm
+            ✓ Minimum 2 scanners must confirm
           </span>
           <span style={{
             fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 999,
