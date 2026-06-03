@@ -16,6 +16,8 @@ import BreakoutView from "./views/BreakoutView";
 import SectorRotationView from "./views/SectorRotationView";
 import BrokerageView from "./views/BrokerageView";
 import TwitterSpikeView from "./views/TwitterSpikeView";
+import PhoenixView from "./views/PhoenixView";
+import FlatBaseView from "./views/FlatBaseView";
 import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
 import ScannerHealthRail from "./ScannerHealthRail";
@@ -38,6 +40,8 @@ interface Props {
   sectorAlerts?:     Alert[];
   brokerAlerts?:     Alert[];
   twitterAlerts?:    Alert[];
+  phoenixAlerts?:    Alert[];
+  flatBaseAlerts?:   Alert[];
   marketData?:     any;
   panelsData?:     any;
   healthData?:     any;
@@ -47,7 +51,7 @@ interface Props {
   promoEnabled?:   boolean;  // is the launch offer currently active site-wide?
 }
 
-type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking" | "momentum" | "falling" | "turnaround" | "bulkdeals" | "breakout" | "sectors" | "broker" | "twitter";
+type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking" | "momentum" | "falling" | "turnaround" | "bulkdeals" | "breakout" | "sectors" | "broker" | "twitter" | "phoenix" | "flatbase";
 
 const ICONS = {
   Globe:   () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="6" cy="6" r="4.5"/><path d="M1.5 6 H10.5"/><path d="M6 1.5 a6 5 0 0 1 0 9 a6 5 0 0 1 0 -9"/></svg>,
@@ -60,7 +64,7 @@ const ICONS = {
   Danger:  () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M6 1.5 L10.5 9.5 H1.5 Z" strokeLinejoin="round"/><line x1="6" y1="5" x2="6" y2="7.5" strokeLinecap="round"/><circle cx="6" cy="8.8" r="0.4" fill="currentColor" stroke="none"/></svg>,
 };
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], phoenixAlerts = [], flatBaseAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
   const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
@@ -73,6 +77,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [sectors,     setSectors]    = useState<Alert[]>(sectorAlerts);
   const [broker,      setBroker]     = useState<Alert[]>(brokerAlerts);
   const [twitter,     setTwitter]    = useState<Alert[]>(twitterAlerts);
+  const [phoenix,     setPhoenix]    = useState<Alert[]>(phoenixAlerts);
+  const [flatBase,    setFlatBase]   = useState<Alert[]>(flatBaseAlerts);
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
   const [clock,       setClock]      = useState("");
@@ -112,6 +118,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         if (a.scan_type === "SECTOR_ROTATION")  setSectors(prev    => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "BROKER_UPGRADES")  setBroker(prev     => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "TWITTER_SPIKE")    setTwitter(prev    => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "PHOENIX_RECOVERY")  setPhoenix(prev   => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "FLAT_BASE_BREAKOUT") setFlatBase(prev  => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
@@ -138,6 +146,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "sectors",   label: "Sector Rotation",       icon: ICONS.Globe,   count: sectors.length || null },
     { id: "broker",    label: "Broker Upgrades",       icon: ICONS.Trophy,  count: broker.length || null },
     { id: "twitter",   label: "Buzz Spike",            icon: ICONS.Rocket,  count: twitter.length || null },
+    { id: "phoenix",   label: "Phoenix Recovery",      icon: ICONS.Bolt,    count: phoenix.length || null },
+    { id: "flatbase",  label: "Flat Base Breakout",    icon: ICONS.Pattern, count: flatBase.length || null },
     { id: "falling",   label: "Stocks About to Fall",  icon: ICONS.Danger,  count: (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)) || null },
     { id: "ranking",   label: "Probability",           icon: ICONS.Trophy,  count: panelsData?.ranking?.length ?? null },
   ];
@@ -311,6 +321,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "sectors"    && <SectorRotationView alerts={sectors} />}
           {tab === "broker"     && <BrokerageView    alerts={broker} />}
           {tab === "twitter"    && <TwitterSpikeView alerts={twitter} />}
+          {tab === "phoenix"    && <PhoenixView      alerts={phoenix} />}
+          {tab === "flatbase"   && <FlatBaseView     alerts={flatBase} />}
           {tab === "falling"    && <AboutToFallView  boomerangAlerts={boomerang} panelsData={panelsData} />}
           {tab === "ranking"    && <RankingTable     panelsData={panelsData} />}
         </main>

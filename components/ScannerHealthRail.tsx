@@ -46,6 +46,8 @@ const DISPLAY_NAME: Record<string, string> = {
   SECTOR_ROTATION:    "Sector Rotation",
   BROKER_UPGRADES:    "Broker Upgrades",
   TWITTER_SPIKE:      "Buzz Spike",
+  PHOENIX_RECOVERY:   "Phoenix Recovery",
+  FLAT_BASE_BREAKOUT: "Flat Base Breakout",
   DASHBOARD_MAIN:     "Dashboard",
   PANEL_UPDATER:      "Panel Updater",
 };

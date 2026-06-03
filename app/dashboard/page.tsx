@@ -47,6 +47,8 @@ export default async function DashboardPage() {
   const sectors      = alerts?.filter(a => a.scan_type === "SECTOR_ROTATION")      ?? [];
   const broker       = alerts?.filter(a => a.scan_type === "BROKER_UPGRADES")      ?? [];
   const twitter      = alerts?.filter(a => a.scan_type === "TWITTER_SPIKE")        ?? [];
+  const phoenix      = alerts?.filter(a => a.scan_type === "PHOENIX_RECOVERY")     ?? [];
+  const flatBase     = alerts?.filter(a => a.scan_type === "FLAT_BASE_BREAKOUT")   ?? [];
   const alertsLast   = alerts?.[0]?.scanned_at ?? null;
 
   // Fetch market overview data
@@ -121,6 +123,8 @@ export default async function DashboardPage() {
       sectorAlerts={sectors}
       brokerAlerts={broker}
       twitterAlerts={twitter}
+      phoenixAlerts={phoenix}
+      flatBaseAlerts={flatBase}
       marketData={marketData}
       panelsData={panelsData}
       healthData={healthData}
