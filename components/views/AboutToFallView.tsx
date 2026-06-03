@@ -129,15 +129,15 @@ export default function AboutToFallView({
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SectionHdr
             icon="🔻"
-            title="Distribution Signals — Overbought + Bearish Chart"
+            title="Distribution Signals — Bearish Setups"
             count={falling.length}
-            hint="RSI overbought + below EMA51 + MACD bearish + declining volume · Stocks showing distribution"
+            hint="Condition A: RSI ≤ 45 + Death Cross (20DMA < 50DMA) | Condition B: RSI > 81 + price falling + volume declining"
           />
 
           <div style={{ background: "var(--bg-1)", border: "1px solid rgba(255,93,108,.2)", borderRadius: 14, overflow: "hidden" }}>
             <div style={{
               display: "grid",
-              gridTemplateColumns: "minmax(120px,1.5fr) 80px 55px 80px 100px 70px minmax(200px,2fr)",
+              gridTemplateColumns: "minmax(120px,1.5fr) 80px 55px 80px 130px 70px minmax(200px,2fr)",
               gap: 8, padding: "10px 14px",
               color: "var(--ink-3)", fontSize: 10.5,
               textTransform: "uppercase", letterSpacing: "0.10em",
@@ -146,45 +146,54 @@ export default function AboutToFallView({
               <span>Symbol</span>
               <span style={{ textAlign: "right" }}>Close</span>
               <span style={{ textAlign: "right" }}>RSI</span>
-              <span style={{ textAlign: "right" }}>% vs 20DMA</span>
-              <span>Death Cross</span>
-              <span style={{ textAlign: "right" }}>Bear Score</span>
+              <span style={{ textAlign: "right" }}>Today %</span>
+              <span>Signal Type</span>
+              <span style={{ textAlign: "right" }}>Score</span>
               <span>Reason</span>
             </div>
 
-            {falling.map((f: any, i: number) => (
-              <div key={i} style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(120px,1.5fr) 80px 55px 80px 100px 70px minmax(200px,2fr)",
-                gap: 8, padding: "10px 14px", alignItems: "center",
-                borderBottom: i < falling.length - 1 ? "1px solid var(--line)" : "none",
-                background: i % 2 === 0 ? "rgba(255,93,108,.04)" : "transparent",
-                cursor: "pointer", transition: "background .12s ease",
-              }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,93,108,.08)")}
-                onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "rgba(255,93,108,.04)" : "transparent")}>
+            {falling.map((f: any, i: number) => {
+              const isExhaustion = f["Signal"] === "EXHAUSTION TOP";
+              return (
+                <div key={i} style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(120px,1.5fr) 80px 55px 80px 130px 70px minmax(200px,2fr)",
+                  gap: 8, padding: "10px 14px", alignItems: "center",
+                  borderBottom: i < falling.length - 1 ? "1px solid var(--line)" : "none",
+                  background: i % 2 === 0 ? "rgba(255,93,108,.04)" : "transparent",
+                  cursor: "pointer", transition: "background .12s ease",
+                }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,93,108,.08)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "rgba(255,93,108,.04)" : "transparent")}>
 
-                <a href={tv(f.Symbol)} target="_blank" rel="noreferrer"
-                  style={{ fontWeight: 700, color: "var(--down)", textDecoration: "none", fontFamily: "var(--mono)", fontSize: 13, display: "flex", alignItems: "center", gap: 4 }}>
-                  {f.Symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
-                </a>
-                <span className="num" style={{ textAlign: "right", fontSize: 12, color: "var(--ink-0)" }}>₹{f.Close}</span>
-                <span className="num" style={{ textAlign: "right", fontWeight: 700, color: "var(--down)", fontSize: 13 }}>{f.RSI}</span>
-                <span className="num" style={{ textAlign: "right", color: "var(--warn)", fontSize: 12 }}>{f["% vs 20DMA"]}%</span>
-                <span>
-                  <span style={{
-                    padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 500,
-                    background: f["Death Cross"] === "YES" ? "rgba(255,93,108,.15)" : "rgba(91,140,255,.10)",
-                    color: f["Death Cross"] === "YES" ? "var(--down)" : "var(--accent-2)",
-                    border: `1px solid ${f["Death Cross"] === "YES" ? "rgba(255,93,108,.3)" : "rgba(91,140,255,.3)"}`
-                  }}>
-                    {f["Death Cross"] === "YES" ? "⚠️ YES" : "NO"}
+                  <a href={tv(f.Symbol)} target="_blank" rel="noreferrer"
+                    style={{ fontWeight: 700, color: "var(--down)", textDecoration: "none", fontFamily: "var(--mono)", fontSize: 13, display: "flex", alignItems: "center", gap: 4 }}>
+                    {f.Symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
+                  </a>
+                  <span className="num" style={{ textAlign: "right", fontSize: 12, color: "var(--ink-0)" }}>₹{f.Close}</span>
+                  <span className="num" style={{
+                    textAlign: "right", fontWeight: 700, fontSize: 13,
+                    color: f.RSI > 81 ? "var(--down)" : "var(--warn)"
+                  }}>{f.RSI}</span>
+                  <span className="num" style={{
+                    textAlign: "right", fontSize: 12,
+                    color: f["Today Chg %"] < 0 ? "var(--down)" : "var(--up)"
+                  }}>{f["Today Chg %"] > 0 ? "+" : ""}{f["Today Chg %"]}%</span>
+                  <span>
+                    <span style={{
+                      padding: "2px 8px", borderRadius: 999, fontSize: 10.5, fontWeight: 600,
+                      background: isExhaustion ? "rgba(255,93,108,.18)" : "rgba(243,181,74,.15)",
+                      color: isExhaustion ? "var(--down)" : "var(--warn)",
+                      border: `1px solid ${isExhaustion ? "rgba(255,93,108,.4)" : "rgba(243,181,74,.4)"}`,
+                    }}>
+                      {isExhaustion ? "🔥 Exhaustion Top" : "☠️ Death Cross"}
+                    </span>
                   </span>
-                </span>
-                <span className="num" style={{ textAlign: "right", fontWeight: 700, color: "var(--down)", fontSize: 16 }}>{f["Bear Score"]}</span>
-                <span style={{ fontSize: 11, color: "var(--ink-3)", lineHeight: 1.4 }}>{f.Reason}</span>
-              </div>
-            ))}
+                  <span className="num" style={{ textAlign: "right", fontWeight: 700, color: "var(--down)", fontSize: 16 }}>{f["Bear Score"]}</span>
+                  <span style={{ fontSize: 11, color: "var(--ink-3)", lineHeight: 1.4 }}>{f.Reason}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
