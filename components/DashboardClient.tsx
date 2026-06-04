@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/components/ThemeProvider";
 import type { Alert } from "@/lib/types";
@@ -20,7 +20,7 @@ import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
 import ScannerHealthRail from "./ScannerHealthRail";
 import Link from "next/link";
-import { Sun, Moon, CreditCard, Sparkles } from "lucide-react";
+import { Sun, Moon, CreditCard, Sparkles, ChevronDown } from "lucide-react";
 
 interface Props {
   userEmail:       string;
@@ -47,17 +47,99 @@ interface Props {
   promoEnabled?:   boolean;  // is the launch offer currently active site-wide?
 }
 
-type Tab = "overview" | "movers" | "patterns" | "wpattern" | "ranking" | "momentum" | "falling" | "turnaround" | "bulkdeals" | "breakout" | "sectors" | "broker" | "twitter";
+type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "flatup" | "flatdown" | "doubletop" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "bulkdeals" | "sectors" | "broker" | "ranking";
+
+/* ── Nav dropdown for dashboard ─────────────────────── */
+function DashDropdown({
+  label, items, activeTab, onSelect, counts
+}: {
+  label: string;
+  items: { id: Tab; label: string; emoji: string; desc: string }[];
+  activeTab: Tab;
+  onSelect: (t: Tab) => void;
+  counts: Partial<Record<Tab, number>>;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isActive = items.some(i => i.id === activeTab);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "flex", alignItems: "center", gap: 5,
+          background: "none", border: "none", cursor: "pointer",
+          fontSize: 13.5, fontWeight: isActive ? 600 : 500,
+          color: isActive ? "var(--accent)" : "var(--ink-1)",
+          padding: "16px 12px 14px",
+          borderBottom: `2px solid ${isActive ? "var(--accent)" : "transparent"}`,
+          marginBottom: -1, transition: "all .12s",
+          fontFamily: "inherit",
+        }}
+      >
+        {label}
+        <ChevronDown size={12} style={{ transition: "transform .2s", transform: open ? "rotate(180deg)" : "none", color: "var(--ink-3)" }} />
+      </button>
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 1px)", left: 0,
+          background: "var(--bg-1)", border: "1px solid var(--line)",
+          borderRadius: 12, boxShadow: "0 8px 30px rgba(0,0,0,0.18)",
+          width: 260, zIndex: 200, overflow: "hidden",
+        }}>
+          {items.map((item, i) => {
+            const isItemActive = activeTab === item.id;
+            const count = counts[item.id];
+            return (
+              <button key={item.id} onClick={() => { onSelect(item.id); setOpen(false); }}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", gap: 12,
+                  padding: "11px 16px",
+                  borderBottom: i < items.length - 1 ? "1px solid var(--line)" : "none",
+                  background: isItemActive ? "color-mix(in oklab, var(--accent) 8%, transparent)" : "transparent",
+                  border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+                  transition: "background .1s",
+                }}
+                onMouseEnter={e => { if (!isItemActive) (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-2)"; }}
+                onMouseLeave={e => { if (!isItemActive) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+              >
+                <span style={{ fontSize: 16, lineHeight: 1 }}>{item.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: isItemActive ? "var(--accent)" : "var(--ink-0)" }}>{item.label}</div>
+                  <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 1 }}>{item.desc}</div>
+                </div>
+                {count != null && count > 0 && (
+                  <span style={{
+                    fontSize: 10.5, fontWeight: 700, padding: "1px 7px", borderRadius: 999,
+                    background: isItemActive ? "rgba(91,140,255,.2)" : "var(--bg-3)",
+                    color: isItemActive ? "var(--accent)" : "var(--ink-3)",
+                  }}>{count}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const ICONS = {
   Globe:   () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="6" cy="6" r="4.5"/><path d="M1.5 6 H10.5"/><path d="M6 1.5 a6 5 0 0 1 0 9 a6 5 0 0 1 0 -9"/></svg>,
   Bolt:    () => <svg width={12} height={12} viewBox="0 0 12 12" fill="currentColor"><path d="M6.8 1 L2.5 6.6 H5.6 L4.4 11 L9.2 5.2 H6.4 L7.5 1 Z"/></svg>,
-  Pattern: () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 6 Q3 9 5 9 Q7 9 8.5 6 L8.5 4 L11 6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-  W:       () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 3 L3.5 9 L5 5 L7 9 L9 5 L10.5 9" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   Trophy:  () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M3 2 H9 V5 a3 3 0 0 1 -6 0 Z" strokeLinejoin="round"/><path d="M3 3 H1.5 V4.2 a1.5 1.5 0 0 0 1.5 1.5"/><path d="M9 3 H10.5 V4.2 a1.5 1.5 0 0 1 -1.5 1.5"/><path d="M4.5 8 H7.5 L8 10.5 H4 Z" strokeLinejoin="round"/></svg>,
   Down:    () => <svg width={10} height={10} viewBox="0 0 10 10"><path d="M5 9 L9 2 L1 2 Z" fill="currentColor"/></svg>,
+  Pattern: () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 6 Q3 9 5 9 Q7 9 8.5 6 L8.5 4 L11 6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   Rocket:  () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M6 1.5 C6 1.5 9.5 2.5 9.5 6.5 L7 9 L5 7 L2.5 9.5 C2.5 9.5 1 9 1 7.5 L3.5 5 L2 2.5 C2 2.5 5 1.5 6 1.5Z" strokeLinejoin="round"/><circle cx="7.5" cy="4.5" r="0.8" fill="currentColor"/></svg>,
   Danger:  () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M6 1.5 L10.5 9.5 H1.5 Z" strokeLinejoin="round"/><line x1="6" y1="5" x2="6" y2="7.5" strokeLinecap="round"/><circle cx="6" cy="8.8" r="0.4" fill="currentColor" stroke="none"/></svg>,
+  W:       () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 3 L3.5 9 L5 5 L7 9 L9 5 L10.5 9" strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
 
 export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
@@ -126,21 +208,46 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     return `${hh}:${mm} IST`;
   };
 
-  const TABS: { id: Tab; label: string; icon: () => JSX.Element; count: number | null }[] = [
-    { id: "overview",  label: "Market Overview",      icon: ICONS.Globe,   count: null },
-    { id: "movers",    label: "Big Movers",            icon: ICONS.Bolt,    count: movers.length },
-    { id: "patterns",  label: "Cup & Handle",          icon: ICONS.Pattern, count: patterns.length },
-    { id: "wpattern",  label: "W-Pattern 15m",         icon: ICONS.W,       count: wPats.length },
-    { id: "momentum",   label: "Momentum Strategy",     icon: ICONS.Rocket,  count: momentum.length },
-    { id: "turnaround", label: "Turnaround Plays",     icon: ICONS.Pattern, count: turnaround.length || null },
-    { id: "bulkdeals", label: "Bulk Deals",            icon: ICONS.Trophy,  count: bulkDeals.length || null },
-    { id: "breakout",  label: "52W Breakouts",         icon: ICONS.Rocket,  count: breakout.length || null },
-    { id: "sectors",   label: "Sector Rotation",       icon: ICONS.Globe,   count: sectors.length || null },
-    { id: "broker",    label: "Broker Upgrades",       icon: ICONS.Trophy,  count: broker.length || null },
-    { id: "twitter",   label: "Buzz Spike",            icon: ICONS.Rocket,  count: twitter.length || null },
-    { id: "falling",   label: "Stocks About to Fall",  icon: ICONS.Danger,  count: (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)) || null },
-    { id: "ranking",   label: "Probability",           icon: ICONS.Trophy,  count: panelsData?.ranking?.length ?? null },
+  // ── Direct tabs (always visible) ──────────────────
+  const DIRECT_TABS: { id: Tab; label: string; icon: () => JSX.Element; count: number | null }[] = [
+    { id: "overview", label: "Market Overview", icon: ICONS.Globe, count: null },
+    { id: "movers",   label: "Big Movers",      icon: ICONS.Bolt,  count: movers.length || null },
+    { id: "twitter",  label: "Buzz Spike",      icon: ICONS.Rocket,count: twitter.length || null },
+    { id: "sectors",  label: "Sector Rotation", icon: ICONS.Globe, count: sectors.length || null },
+    { id: "ranking",  label: "Probability",     icon: ICONS.Trophy,count: panelsData?.ranking?.length ?? null },
   ];
+
+  // ── Chart Patterns dropdown ─────────────────────
+  const CHART_PATTERN_ITEMS: { id: Tab; label: string; emoji: string; desc: string }[] = [
+    { id: "patterns",  label: "Cup & Handle",          emoji: "📈", desc: "EMA-51 recovery base pattern" },
+    { id: "wpattern",  label: "W Pattern",              emoji: "Ｗ",  desc: "Double bottom reversal" },
+    { id: "turnaround",label: "Turnaround Plays",       emoji: "↺",  desc: "Higher-low recovery setups" },
+    { id: "flatup",    label: "Flat Base Breakout ↑",   emoji: "📦", desc: "Consolidation breakout bullish" },
+    { id: "flatdown",  label: "Flat Base Breakdown ↓",  emoji: "📉", desc: "Consolidation breakdown bearish" },
+    { id: "doubletop", label: "Double Top Pattern",     emoji: "⛰",  desc: "Two peaks — reversal signal" },
+  ];
+
+  // ── Stock Analysis dropdown ─────────────────────
+  const STOCK_ANALYSIS_ITEMS: { id: Tab; label: string; emoji: string; desc: string }[] = [
+    { id: "momentum",   label: "Momentum Strategy",    emoji: "🚀", desc: "RSI cross-70 + delivery" },
+    { id: "falling",    label: "Stocks About to Fall", emoji: "🔻", desc: "Death cross + RSI exhaustion" },
+    { id: "nextday",    label: "Next Day Potential",   emoji: "🎯", desc: "EOD picks for tomorrow" },
+    { id: "multibagger",label: "Multibagger Picks",    emoji: "💎", desc: "Long-term high-conviction" },
+    { id: "breakout",   label: "52W Breakouts",        emoji: "🏔", desc: "Fresh 52-week highs" },
+    { id: "bulkdeals",  label: "Bulk Deals",           emoji: "🏦", desc: "Institutional accumulation" },
+  ];
+
+  // Count map for dropdown badges
+  const tabCounts: Partial<Record<Tab, number>> = {
+    patterns:   patterns.length,
+    wpattern:   wPats.length,
+    turnaround: turnaround.length,
+    momentum:   momentum.length,
+    falling:    (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)),
+    nextday:    panelsData?.next_day?.length ?? 0,
+    breakout:   breakout.length,
+    bulkdeals:  bulkDeals.length,
+  };
 
   const stats = [
     { label: "Big Mover Alerts",  value: movers.length,                       hint: "Triggered today",       icon: ICONS.Bolt,    tone: "--up" },
@@ -273,29 +380,90 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         </div>
       </div>
 
-      {/* ── Tabs ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 28px", borderBottom: "1px solid var(--line)", background: "var(--bg-0)", position: "sticky", top: 61, zIndex: 40 }}>
-        {TABS.map(t => {
+      {/* ── Navigation Bar with Dropdowns ── */}
+      <nav style={{
+        display: "flex", alignItems: "center", gap: 0,
+        padding: "0 28px", borderBottom: "1px solid var(--line)",
+        background: "var(--bg-1)", position: "sticky", top: 61, zIndex: 40,
+      }}>
+        {/* Direct tabs */}
+        {DIRECT_TABS.map(t => {
           const isActive = tab === t.id;
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
-              style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "14px 14px 13px", margin: "0 2px", background: "transparent", border: "none", borderBottom: `2px solid ${isActive ? "var(--accent)" : "transparent"}`, color: isActive ? "var(--ink-0)" : "var(--ink-2)", fontSize: 13, fontWeight: 500, fontFamily: "inherit", cursor: "pointer", transition: "color .12s ease, border-color .12s ease", marginBottom: -1 }}>
-              <span style={{ color: isActive ? "var(--accent)" : "var(--ink-3)" }}><t.icon/></span>
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "16px 14px 14px", margin: "0 2px",
+                background: "transparent", border: "none",
+                borderBottom: `2px solid ${isActive ? "var(--accent)" : "transparent"}`,
+                color: isActive ? "var(--accent)" : "var(--ink-2)",
+                fontSize: 13.5, fontWeight: isActive ? 600 : 500,
+                fontFamily: "inherit", cursor: "pointer",
+                transition: "color .12s ease, border-color .12s ease",
+                marginBottom: -1, whiteSpace: "nowrap",
+              }}>
+              <t.icon/>
               <span>{t.label}</span>
-              {t.count !== null && (
-                <span className="num" style={{ fontSize: 10.5, padding: "2px 7px", borderRadius: 999, background: isActive ? "rgba(91,140,255,.14)" : "var(--bg-3)", color: isActive ? "var(--accent-2)" : "var(--ink-3)", border: `1px solid ${isActive ? "rgba(91,140,255,.30)" : "var(--line)"}` }}>{t.count}</span>
+              {t.count != null && t.count > 0 && (
+                <span style={{
+                  fontSize: 10.5, padding: "1px 6px", borderRadius: 999,
+                  background: isActive ? "rgba(91,140,255,.14)" : "var(--bg-3)",
+                  color: isActive ? "var(--accent)" : "var(--ink-3)",
+                  border: `1px solid ${isActive ? "rgba(91,140,255,.30)" : "var(--line)"}`,
+                }}>{t.count}</span>
               )}
             </button>
           );
         })}
-        <div style={{ flex: 1 }}/>
+
+        {/* Divider */}
+        <div style={{ width: 1, height: 22, background: "var(--line)", margin: "0 6px" }}/>
+
+        {/* Chart Patterns dropdown */}
+        <DashDropdown
+          label="Chart Patterns"
+          items={CHART_PATTERN_ITEMS}
+          activeTab={tab}
+          onSelect={setTab}
+          counts={tabCounts}
+        />
+
+        {/* Stock Analysis dropdown */}
+        <DashDropdown
+          label="Stock Analysis"
+          items={STOCK_ANALYSIS_ITEMS}
+          activeTab={tab}
+          onSelect={setTab}
+          counts={tabCounts}
+        />
+
+        {/* Broker Upgrades direct link */}
+        <button onClick={() => setTab("broker")}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "16px 14px 14px",
+            background: "transparent", border: "none",
+            borderBottom: `2px solid ${tab === "broker" ? "var(--accent)" : "transparent"}`,
+            color: tab === "broker" ? "var(--accent)" : "var(--ink-2)",
+            fontSize: 13.5, fontWeight: tab === "broker" ? 600 : 500,
+            fontFamily: "inherit", cursor: "pointer", marginBottom: -1,
+            whiteSpace: "nowrap",
+          }}>
+          🎯 Broker Upgrades
+          {(broker.length ?? 0) > 0 && (
+            <span style={{ fontSize: 10.5, padding: "1px 6px", borderRadius: 999, background: "var(--bg-3)", color: "var(--ink-3)", border: "1px solid var(--line)" }}>{broker.length}</span>
+          )}
+        </button>
+
+        <div style={{ flex: 1 }} />
+
         {isLive && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 8px" }}>
             <PulseDot color="var(--up)"/>
-            <span style={{ fontSize: 11.5, color: "var(--up)", fontWeight: 500 }}>Updating live…</span>
+            <span style={{ fontSize: 11.5, color: "var(--up)", fontWeight: 500 }}>Live update!</span>
           </div>
         )}
-      </div>
+      </nav>
 
       {/* ── Main Content ── */}
       <div style={{ display: "flex", flex: 1 }}>
@@ -313,6 +481,11 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "twitter"    && <TwitterSpikeView alerts={twitter} />}
           {tab === "falling"    && <AboutToFallView  boomerangAlerts={boomerang} panelsData={panelsData} />}
           {tab === "ranking"    && <RankingTable     panelsData={panelsData} />}
+          {tab === "nextday"    && <NextDayView      panelsData={panelsData} />}
+          {tab === "flatup"     && <ComingSoonView   title="Flat Base Breakout ↑" emoji="📦" desc="Stocks in tight consolidation (range <10%) for 75-120 days, EMA-51 flat, now breaking ABOVE the base with volume confirmation." />}
+          {tab === "flatdown"   && <ComingSoonView   title="Flat Base Breakdown ↓" emoji="📉" desc="Stocks consolidating flat for months, now breaking BELOW the base — bearish setup with declining volume and death cross confirmation." />}
+          {tab === "doubletop"  && <ComingSoonView   title="Double Top Pattern" emoji="⛰" desc="Two peaks at similar price level followed by breakdown below neckline — high-probability reversal signal with volume confirmation." />}
+          {tab === "multibagger"&& <ComingSoonView   title="Multibagger Picks" emoji="💎" desc="Long-term high-conviction setups. Criteria coming soon." />}
         </main>
 
         {/* ── Scanner Health Rail ── */}
@@ -347,6 +520,66 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         <div style={{ flex: 1 }}/>
         <span className="num">v1.0.0</span>
       </footer>
+    </div>
+  );
+}
+
+/* ── Next Day Potential Movers inline view ─────────────── */
+function NextDayView({ panelsData }: { panelsData?: any }) {
+  const picks = panelsData?.next_day || [];
+  if (!picks.length) return (
+    <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, padding: 64, textAlign: "center" }}>
+      <div style={{ fontSize: 40, marginBottom: 16 }}>🎯</div>
+      <p style={{ color: "var(--ink-3)", margin: 0 }}>Next Day picks update after 3:45 PM IST using today's closing data.</p>
+    </div>
+  );
+
+  const tv = (sym: string) => `https://in.tradingview.com/chart/?symbol=NSE:${sym}`;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, padding: "16px 20px" }}>
+        <h2 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 600, color: "var(--ink-0)" }}>🎯 Next Day Potential Movers</h2>
+        <p style={{ margin: 0, fontSize: 12, color: "var(--ink-3)" }}>EOD signals · EMA-51 entry zone + Vol surge + MACD building + News catalyst + Cross-scanner confirmation</p>
+      </div>
+      {picks.map((r: any, i: number) => (
+        <div key={i} style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, padding: "16px 20px", borderLeft: "3px solid var(--accent)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <a href={tv(r.Symbol)} target="_blank" rel="noreferrer"
+              style={{ fontWeight: 700, fontSize: 15, color: "var(--ink-0)", textDecoration: "none" }}>
+              {r.Symbol} ↗
+            </a>
+            <span style={{ background: r.Conviction === "HIGH" ? "rgba(43,208,122,.15)" : "rgba(243,181,74,.15)", color: r.Conviction === "HIGH" ? "var(--up)" : "var(--warn)", border: `1px solid ${r.Conviction === "HIGH" ? "rgba(43,208,122,.35)" : "rgba(243,181,74,.35)"}`, fontSize: 11, fontWeight: 700, padding: "2px 10px", borderRadius: 999 }}>{r.Conviction || "MEDIUM"}</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 10, marginBottom: 10 }}>
+            {[["LTP", `₹${r.LTP}`], ["RSI", r.RSI], ["Vol", r["Today Vol"]], ["EMA51", `+${r["% from EMA51"]}%`], ["SL", `₹${r["Stop Loss"]}`], ["T1", `₹${r["Target 1"]}`]].map(([l, v]) => (
+              <div key={l as string} style={{ background: "var(--bg-2)", borderRadius: 8, padding: "8px 10px" }}>
+                <div style={{ fontSize: 10, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{l as string}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-0)", marginTop: 2 }}>{String(v)}</div>
+              </div>
+            ))}
+          </div>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--ink-2)", lineHeight: 1.5 }}>{r["Why Tomorrow"] || r["Why Buy"] || "Technical setup"}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Coming Soon placeholder ───────────────────────────── */
+function ComingSoonView({ title, emoji, desc }: { title: string; emoji: string; desc: string }) {
+  return (
+    <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 16, padding: 64, textAlign: "center", maxWidth: 560, margin: "40px auto" }}>
+      <div style={{ fontSize: 56, marginBottom: 20 }}>{emoji}</div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: "var(--ink-0)", margin: "0 0 12px" }}>{title}</h2>
+      <p style={{ fontSize: 14, color: "var(--ink-3)", lineHeight: 1.7, margin: "0 0 24px" }}>{desc}</p>
+      <div style={{
+        display: "inline-flex", alignItems: "center", gap: 8,
+        background: "rgba(91,140,255,.1)", border: "1px solid rgba(91,140,255,.25)",
+        color: "var(--accent)", fontSize: 13, fontWeight: 600,
+        padding: "8px 20px", borderRadius: 999,
+      }}>
+        🔨 Scanner coming soon
+      </div>
     </div>
   );
 }
