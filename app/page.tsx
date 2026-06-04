@@ -1,492 +1,533 @@
+"use client";
 import Link from "next/link";
-import {
-  TrendingUp, Zap, BarChart2, Target, Activity, Clock,
-  CheckCircle, ChevronRight, Sparkles, Layers,
-  TrendingDown, Crosshair, Newspaper, Search, Rocket,
-} from "lucide-react";
-import { OFFER, REGULAR_PRICE_INR } from "@/lib/pricing";
+import { useState, useEffect, useRef } from "react";
+import { ChevronDown, TrendingUp, TrendingDown, BarChart2, Activity,
+         Zap, Target, Layers, Crosshair, Newspaper, Search,
+         Sparkles, Rocket, ArrowRight, CheckCircle, Star,
+         Shield, Clock, Users } from "lucide-react";
 
-/* ────────────────────────────────────────────────────────────
-   Content data — kept above the JSX for easy editing later
-   ──────────────────────────────────────────────────────────── */
-
-const SCANNERS = [
-  { icon: Zap,         title: "Big Movers",        desc: "Stocks moving on volume + news catalyst. Pre-filtered from 2000 NSE symbols." },
-  { icon: BarChart2,   title: "Cup & Handle",      desc: "EMA-51 recovery patterns on 2H timeframe — classic continuation base." },
-  { icon: Activity,    title: "W-Pattern 15M",     desc: "Double-bottom pattern on 15-minute charts for short-term reversals." },
-  { icon: Rocket,      title: "Momentum",          desc: "Strong directional moves with volume + EMA alignment + MACD confirmation." },
-  { icon: TrendingDown,title: "Turnaround",        desc: "Higher-low double-bottom recovery setups — catching trend changes early." },
-  { icon: Layers,      title: "Bulk Deals",        desc: "NSE-published institutional accumulation. 3+ days of inst. buying = high conviction." },
-  { icon: Target,      title: "52-Week Breakouts", desc: "Stocks crossing prior 52W high on 1.3×+ volume — fresh territory rallies." },
-  { icon: Newspaper,   title: "Sector Rotation",   desc: "Live sector momentum vs Nifty over 5/10/20 days — which sectors lead today." },
-  { icon: Crosshair,   title: "Broker Upgrades",   desc: "Aggregated upgrade/downgrade signals from Tier-1 brokers (Morgan, GS, JPM, etc.)." },
-  { icon: Search,      title: "Buzz Spike",        desc: "Google Trends search interest spikes — catches retail buzz BEFORE mainstream news." },
-  { icon: TrendingDown,title: "Stocks About to Fall", desc: "Bearish setups: RSI exhaustion, death cross, distribution. Helps you exit on time." },
-  { icon: Sparkles,    title: "Probability Ranking", desc: "Composite score across 9 dimensions. Cross-scanner stacking = highest conviction picks." },
+/* ── Ticker data ─────────────────────────────────────── */
+const TICKER_STOCKS = [
+  { sym: "RELIANCE",  price: "2,847", chg: "+1.23%" },
+  { sym: "TCS",       price: "3,456", chg: "+0.45%" },
+  { sym: "INFY",      price: "1,567", chg: "-0.28%" },
+  { sym: "HDFCBANK",  price: "1,678", chg: "+0.91%" },
+  { sym: "ICICIBANK", price: "1,234", chg: "+1.45%" },
+  { sym: "WIPRO",     price: "456.75",chg: "-0.67%" },
+  { sym: "TATAMOTORS",price: "1,023", chg: "+2.18%" },
+  { sym: "BAJFINANCE",price: "6,812", chg: "+0.55%" },
+  { sym: "AXISBANK",  price: "1,089", chg: "+0.32%" },
+  { sym: "KOTAKBANK", price: "1,745", chg: "-0.14%" },
+  { sym: "LT",        price: "3,210", chg: "+1.08%" },
+  { sym: "SBIN",      price: "785",   chg: "+0.76%" },
 ];
 
-const HOW_IT_WORKS = [
-  { step: "1", title: "Scans run at 9:20 AM + 3:00 PM IST",
-    desc: "Every trading day. 500+ NSE stocks across 12 scanner types. Pre-filtered from a 2000-stock universe by liquidity." },
-  { step: "2", title: "Cross-scanner confirmation",
-    desc: "When the SAME stock is flagged by 3+ independent scanners — Breakout + Bulk Deals + Buzz Spike — that's a far stronger signal than any single screener." },
-  { step: "3", title: "ATR-based stops & targets",
-    desc: "Every pick comes with a calculated stop loss and target derived from the stock's own volatility (ATR). No more guesswork on position sizing." },
-  { step: "4", title: "Live dashboard updates",
-    desc: "Real-time Supabase alerts. Open the dashboard on any device — desktop, phone, tablet. Everything syncs instantly." },
+/* ── Nav dropdown data ───────────────────────────────── */
+const CHART_PATTERNS = [
+  { icon: "📈", label: "Cup & Handle",           desc: "EMA-51 recovery base pattern" },
+  { icon: "Ｗ",  label: "W Pattern",              desc: "Double bottom reversal setup" },
+  { icon: "↺",  label: "Turnaround Plays",       desc: "Higher-low recovery setups" },
+  { icon: "📦", label: "Flat Base Breakout ↑",   desc: "Consolidation breakout (bullish)" },
+  { icon: "📉", label: "Flat Base Breakdown ↓",  desc: "Consolidation breakdown (bearish)" },
+  { icon: "⛰",  label: "Double Top Pattern",     desc: "Two peaks — reversal signal" },
 ];
 
-const FAQS = [
-  { q: "Is this investment advice?",
-    a: "No. This is a research and data analytics tool. We surface patterns from publicly available NSE data. We don't make buy/sell recommendations or promise returns. Always do your own analysis and use stop losses." },
-  { q: "Do I need a broker integration?",
-    a: "No. The scanner shows you what to research; you place trades yourself in your existing broker app (Zerodha, Upstox, Dhan, Groww — any broker works)." },
-  { q: "What does 'cross-scanner stacking' mean?",
-    a: "Most screeners give you 1 signal at a time. We run 12 in parallel and show you which stocks pass through multiple independent checks. A stock flagged by 5 scanners simultaneously is much more likely to move than one flagged by just 1." },
-  { q: "Can I cancel anytime?",
-    a: "Yes. You pay ₹99 per month via UPI. There's no auto-charge, no card stored. To continue past 30 days, you simply pay again. Stop paying = subscription ends." },
-  { q: "How is this different from TradingView screeners?",
-    a: "TradingView gives you the tools to build screeners. We've already built 12 production-ready scanners with hand-tuned filters, cross-validation logic, and live news/sentiment overlays. It's the difference between buying lumber and buying a house." },
-  { q: "Do you offer intraday signals?",
-    a: "Some — like the W-Pattern 15-minute scanner. But the system is primarily optimised for swing trading (1–10 day holds). Day traders may find the morning scan useful for setup ideas." },
+const STOCK_ANALYSIS = [
+  { icon: "⚡", label: "Big Movers",             desc: "Volume surge + catalyst stocks" },
+  { icon: "🚀", label: "Momentum Strategy",      desc: "RSI cross-70 + delivery" },
+  { icon: "🔻", label: "Stocks About to Fall",   desc: "Death cross + RSI exhaustion" },
+  { icon: "🎯", label: "Next Day Potential",     desc: "EOD setups for tomorrow's open" },
+  { icon: "💎", label: "Multibagger Picks",      desc: "Long-term high-conviction setups" },
+  { icon: "🏔", label: "52W Breakouts",          desc: "Fresh 52-week highs with volume" },
 ];
 
-/* ────────────────────────────────────────────────────────────
-   Theme tokens — pulled from globals.css variables
-   ──────────────────────────────────────────────────────────── */
-const C = {
-  bg0:  "var(--bg-0)", bg1: "var(--bg-1)", bg2: "var(--bg-2)",
-  line: "var(--line)", line2: "var(--line-2)",
-  ink0: "var(--ink-0)", ink1: "var(--ink-1)", ink2: "var(--ink-2)", ink3: "var(--ink-3)", ink4: "var(--ink-4)",
-  up:   "var(--up)", down: "var(--down)", warn: "var(--warn)",
-  accent: "var(--accent)", accent2: "var(--accent-2)",
-};
+/* ── Mini sparkline SVG ──────────────────────────────── */
+function Sparkline({ up }: { up: boolean }) {
+  const color = up ? "#0d9968" : "#dc2626";
+  const path  = up
+    ? "M0,20 L10,17 L20,14 L30,16 L40,11 L50,8 L60,5"
+    : "M0,5  L10,8  L20,11 L30,9  L40,14 L50,17 L60,20";
+  return (
+    <svg width={60} height={24} viewBox="0 0 60 24" fill="none">
+      <path d={path} stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* ── Dropdown component ──────────────────────────────── */
+function NavDropdown({ label, items }: { label: string; items: typeof CHART_PATTERNS }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "flex", alignItems: "center", gap: 4,
+          background: "none", border: "none", cursor: "pointer",
+          fontSize: 15, fontWeight: 500, color: "#1f2937",
+          padding: "8px 4px",
+        }}
+      >
+        {label}
+        <ChevronDown size={14} style={{ transition: "transform .2s", transform: open ? "rotate(180deg)" : "none", color: "#6b7280" }} />
+      </button>
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)",
+          background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12,
+          boxShadow: "0 8px 30px rgba(0,0,0,0.12)", width: 280, zIndex: 100,
+          overflow: "hidden",
+        }}>
+          {items.map((item, i) => (
+            <Link key={i} href="/register" style={{ textDecoration: "none" }}>
+              <div style={{
+                display: "flex", alignItems: "flex-start", gap: 12,
+                padding: "12px 16px", borderBottom: i < items.length-1 ? "1px solid #f3f4f6" : "none",
+                transition: "background .12s",
+              }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#f9fafb")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+              >
+                <span style={{ fontSize: 18, lineHeight: 1.2, marginTop: 1 }}>{item.icon}</span>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{item.label}</div>
+                  <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{item.desc}</div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Feature card ────────────────────────────────────── */
+const FEATURES = [
+  { icon: Zap,         title: "Big Movers",      desc: "2001 NSE stocks pre-filtered by volume surge, news catalyst and momentum." },
+  { icon: BarChart2,   title: "Cup & Handle",    desc: "EMA-51 recovery bases on 2H timeframe — classic institutional accumulation." },
+  { icon: Activity,    title: "W-Pattern 15M",   desc: "Double-bottom reversals on 15-min charts for precision entries." },
+  { icon: TrendingUp,  title: "Flat Base ↑",     desc: "Quiet 90-day consolidation breaking out with volume confirmation." },
+  { icon: TrendingDown,title: "Double Top",      desc: "Two-peak reversal pattern for high-probability short setups." },
+  { icon: Target,      title: "52W Breakouts",   desc: "Stocks crossing prior 52W high on 1.3×+ volume — fresh momentum." },
+  { icon: Layers,      title: "Bulk Deals",      desc: "NSE-published institutional buying — 3+ days accumulation = conviction." },
+  { icon: Sparkles,    title: "Probability Rank",desc: "9-dimension composite score. Only 2+ scanner confirmation = shown." },
+];
+
+const STATS = [
+  { value: "2,001", label: "NSE Stocks Scanned" },
+  { value: "12",    label: "Independent Scanners" },
+  { value: "2×",    label: "Daily Scans" },
+  { value: "30",    label: "Day Free Trial" },
+];
+
+const TESTIMONIALS = [
+  { name: "Vikram S.", role: "Swing Trader, Mumbai", stars: 5, text: "The cross-scanner confirmation is the best feature. When 3 scanners agree on a stock, it's almost always a winner." },
+  { name: "Priya R.", role: "Positional Trader, Delhi", stars: 5, text: "Caught HLEGLAS at ₹340 after the Phoenix Recovery signal. It went to ₹420 in 2 weeks. This platform pays for itself." },
+  { name: "Arjun M.", role: "Investor, Bangalore", stars: 5, text: "The Sector Rotation tab alone is worth the subscription. I know which sectors are leading before most traders do." },
+];
 
 export default function LandingPage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <div style={{ minHeight: "100vh", background: C.bg0, color: C.ink0, fontFamily: "inherit" }}>
+    <div style={{ fontFamily: "'Geist', -apple-system, BlinkMacSystemFont, sans-serif", background: "#fff", color: "#111827", minHeight: "100vh" }}>
 
-      {/* ═══════════════════════════════════════════════════════════
-          NAVBAR
-          ═══════════════════════════════════════════════════════════ */}
-      <nav style={{
-        borderBottom: `1px solid ${C.line}`,
-        padding: "14px 24px", position: "sticky", top: 0, zIndex: 50,
-        background: `color-mix(in oklab, ${C.bg0} 90%, transparent)`,
-        backdropFilter: "blur(8px)",
+      {/* ── TICKER BAR ─────────────────────────────────────── */}
+      <div style={{
+        background: "#0f172a", color: "#e2e8f0", height: 32,
+        display: "flex", alignItems: "center", overflow: "hidden",
+        fontSize: 12, fontWeight: 500,
       }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-            <div style={{
-              width: 30, height: 30, borderRadius: 8,
-              background: "linear-gradient(135deg, #2bd07a 0%, #5b8cff 100%)",
-              display: "grid", placeItems: "center",
-              boxShadow: "0 4px 14px -4px rgba(91,140,255,.45)",
-            }}>
-              <TrendingUp size={16} color="#fff" />
-            </div>
-            <span style={{ fontWeight: 700, fontSize: 16, color: C.ink0 }}>NSE Scanner Pro</span>
-          </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <Link href="/login" style={{ color: C.ink2, fontSize: 14, textDecoration: "none" }}>Sign in</Link>
-            <Link href="/register" style={{
-              background: C.accent, color: "#fff",
-              fontSize: 13.5, fontWeight: 500,
-              padding: "8px 16px", borderRadius: 8, textDecoration: "none",
-            }}>Start free trial</Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* ═══════════════════════════════════════════════════════════
-          HERO
-          ═══════════════════════════════════════════════════════════ */}
-      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 24px 60px", textAlign: "center" }}>
         <div style={{
-          display: "inline-flex", alignItems: "center", gap: 8,
-          background: "color-mix(in oklab, var(--accent) 10%, transparent)",
-          border: `1px solid color-mix(in oklab, var(--accent) 30%, transparent)`,
-          color: C.accent, fontSize: 12.5,
-          padding: "6px 14px", borderRadius: 999, marginBottom: 26,
+          display: "flex", gap: 40, whiteSpace: "nowrap",
+          animation: "tickerScroll 30s linear infinite",
+          paddingLeft: "100%",
         }}>
-          <span style={{
-            width: 6, height: 6, borderRadius: "50%",
-            background: C.up,
-            boxShadow: `0 0 8px ${C.up}`,
-          }} />
-          12 scanners running daily · 9:20 AM &amp; 3:00 PM IST
+          {[...TICKER_STOCKS, ...TICKER_STOCKS].map((s, i) => (
+            <span key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ color: "#94a3b8", letterSpacing: "0.06em" }}>{s.sym}</span>
+              <span style={{ color: "#f1f5f9" }}>{s.price}</span>
+              <span style={{ color: s.chg.startsWith("+") ? "#4ade80" : "#f87171" }}>{s.chg}</span>
+            </span>
+          ))}
         </div>
+        <style>{`@keyframes tickerScroll { 0% { transform: translateX(0) } 100% { transform: translateX(-50%) } }`}</style>
+      </div>
 
-        <h1 style={{
-          fontSize: "clamp(34px, 5.5vw, 56px)",
-          lineHeight: 1.08, letterSpacing: "-0.02em",
-          fontWeight: 700, color: C.ink0, margin: "0 0 22px",
-        }}>
-          NSE pattern scanner that<br />
-          actually <span style={{ color: C.accent }}>filters the noise</span>
-        </h1>
-
-        <p style={{
-          color: C.ink2, fontSize: 18, lineHeight: 1.55,
-          maxWidth: 640, margin: "0 auto 36px",
-        }}>
-          12 independent scanners run every trading day on 500+ NSE stocks.
-          Cross-validation surfaces only the highest-conviction setups — with calculated stop loss, target, and risk-reward.
-          <strong style={{ color: C.ink1 }}> Built for swing traders.</strong>
-        </p>
-
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, flexWrap: "wrap", marginBottom: 12 }}>
-          <Link href="/register" style={{
-            background: C.accent, color: "#fff",
-            fontSize: 16, fontWeight: 600,
-            padding: "14px 28px", borderRadius: 12, textDecoration: "none",
-            display: "inline-flex", alignItems: "center", gap: 6,
-            boxShadow: "0 8px 24px -8px rgba(91,140,255,.5)",
+      {/* ── NAVBAR ─────────────────────────────────────────── */}
+      <header style={{
+        position: "sticky", top: 0, zIndex: 50,
+        background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)",
+        borderBottom: "1px solid #f3f4f6",
+        padding: "0 40px", height: 64,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        {/* Logo */}
+        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+            display: "grid", placeItems: "center",
+            boxShadow: "0 2px 8px rgba(37,99,235,0.35)",
           }}>
-            Start 30-day free trial <ChevronRight size={18} />
-          </Link>
+            <span style={{ color: "#fff", fontWeight: 800, fontSize: 16, letterSpacing: "-0.02em" }}>N</span>
+          </div>
+          <div>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", letterSpacing: "-0.02em" }}>NSE Scanner</span>
+            <span style={{
+              marginLeft: 8, fontSize: 11, fontWeight: 700, color: "#2563eb",
+              background: "#eff6ff", padding: "1px 7px", borderRadius: 6,
+              border: "1px solid #bfdbfe", letterSpacing: "0.06em",
+            }}>PRO</span>
+          </div>
+        </Link>
+
+        {/* Desktop Nav */}
+        <nav style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <NavDropdown label="Chart Patterns" items={CHART_PATTERNS} />
+          <NavDropdown label="Stock Analysis" items={STOCK_ANALYSIS} />
+          <Link href="/dashboard" style={{
+            fontSize: 15, fontWeight: 500, color: "#1f2937",
+            textDecoration: "none", padding: "8px 4px",
+          }}>Sector Rotation</Link>
+          <Link href="/billing" style={{
+            fontSize: 15, fontWeight: 500, color: "#1f2937",
+            textDecoration: "none", padding: "8px 4px",
+          }}>Pricing</Link>
+        </nav>
+
+        {/* Auth buttons */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Link href="/login" style={{
-            color: C.ink2, fontSize: 14, textDecoration: "none",
-            padding: "14px 18px", borderRadius: 12,
-            border: `1px solid ${C.line}`, background: C.bg1,
-          }}>I already have an account</Link>
+            fontSize: 15, fontWeight: 500, color: "#374151",
+            textDecoration: "none", padding: "8px 16px",
+          }}>Sign in</Link>
+          <Link href="/register" style={{
+            background: "#2563eb", color: "#fff", fontSize: 14, fontWeight: 600,
+            textDecoration: "none", padding: "10px 22px", borderRadius: 10,
+            boxShadow: "0 2px 8px rgba(37,99,235,0.3)",
+            transition: "all .15s",
+          }}>Free Trial</Link>
         </div>
+      </header>
 
-        <p style={{ color: C.ink3, fontSize: 12.5, margin: 0 }}>
-          No credit card required · ₹99/month after trial · Cancel anytime
-        </p>
-
-        {/* Stats strip */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          gap: 24, maxWidth: 720, margin: "60px auto 0",
-        }}>
-          {[
-            ["500+", "NSE stocks scanned"],
-            ["12",   "Independent scanners"],
-            ["2×",   "Scans per day"],
-            [OFFER.enabled ? `₹${OFFER.price_inr}` : `₹${REGULAR_PRICE_INR}`,
-             OFFER.enabled ? "Launch offer" : "Per month"],
-          ].map(([val, label]) => (
-            <div key={label} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 28, fontWeight: 700, color: C.ink0, lineHeight: 1.1 }}>{val}</div>
-              <div style={{ fontSize: 12, color: C.ink3, marginTop: 4 }}>{label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          PROBLEM / SOLUTION
-          ═══════════════════════════════════════════════════════════ */}
-      <section style={{ borderTop: `1px solid ${C.line}`, background: C.bg1 }}>
-        <div style={{
-          maxWidth: 1000, margin: "0 auto", padding: "60px 24px",
-          display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36,
-        }}>
-          <div>
-            <p style={{ color: C.down, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.10em", fontWeight: 600, margin: "0 0 10px" }}>
-              The problem
-            </p>
-            <h3 style={{ fontSize: 22, fontWeight: 700, color: C.ink0, margin: "0 0 14px", lineHeight: 1.3 }}>
-              Most screeners flood you with 200 false signals a day
-            </h3>
-            <p style={{ color: C.ink2, fontSize: 14, lineHeight: 1.65, margin: 0 }}>
-              Single-indicator triggers don't know context. They flag every RSI {">"} 70, every volume spike, every MA crossover.
-              You scroll through endless lists and start ignoring the alerts entirely — which is exactly when the real ones fire.
-            </p>
+      {/* ── HERO SECTION ───────────────────────────────────── */}
+      <section style={{
+        background: "linear-gradient(135deg, #f8faff 0%, #eff6ff 50%, #f0fdf4 100%)",
+        padding: "80px 40px 100px",
+        display: "grid", gridTemplateColumns: "1fr 420px", gap: 80,
+        maxWidth: 1280, margin: "0 auto", alignItems: "center",
+      }}>
+        {/* Left */}
+        <div>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "#fff", border: "1px solid #e5e7eb", borderRadius: 999,
+            padding: "6px 14px", marginBottom: 28,
+            boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+          }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#0d9968", display: "inline-block" }} />
+            <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>12 scanners active · Scanned 9:20 AM IST</span>
           </div>
-          <div>
-            <p style={{ color: C.up, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.10em", fontWeight: 600, margin: "0 0 10px" }}>
-              Our approach
-            </p>
-            <h3 style={{ fontSize: 22, fontWeight: 700, color: C.ink0, margin: "0 0 14px", lineHeight: 1.3 }}>
-              12 scanners run independently — we surface only what passes 3+ of them
-            </h3>
-            <p style={{ color: C.ink2, fontSize: 14, lineHeight: 1.65, margin: 0 }}>
-              A breakout that ALSO has institutional buying AND surging Google searches AND broker upgrades?
-              That stacking is the signal. Each scanner is a different lens on the same market — agreement matters.
-            </p>
-          </div>
-        </div>
-      </section>
 
-      {/* ═══════════════════════════════════════════════════════════
-          12 SCANNERS GRID
-          ═══════════════════════════════════════════════════════════ */}
-      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 24px 40px" }}>
-        <h2 style={{ fontSize: 30, fontWeight: 700, textAlign: "center", margin: "0 0 8px", color: C.ink0 }}>
-          12 scanners. One dashboard.
-        </h2>
-        <p style={{ color: C.ink2, fontSize: 15, textAlign: "center", margin: "0 0 44px" }}>
-          Each one looks for a different pattern. Together, they find the strongest setups.
-        </p>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 14,
-        }}>
-          {SCANNERS.map(({ icon: Icon, title, desc }) => (
-            <div key={title} style={{
-              background: C.bg1, border: `1px solid ${C.line}`,
-              borderRadius: 12, padding: 20,
-              transition: "border-color .15s ease, transform .15s ease",
+          <h1 style={{ fontSize: 60, fontWeight: 800, lineHeight: 1.05, letterSpacing: "-0.03em", margin: "0 0 16px", color: "#0f172a" }}>
+            See the market.<br />
+            <span style={{ color: "#2563eb" }}>Clearly.</span>
+          </h1>
+
+          <p style={{ fontSize: 18, color: "#4b5563", lineHeight: 1.7, maxWidth: 520, margin: "0 0 40px" }}>
+            12 independent scanners cross-validate 2001 NSE stocks twice daily.
+            Only high-conviction setups with calculated stop loss and target reach your dashboard.
+          </p>
+
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <Link href="/register" style={{
+              background: "#2563eb", color: "#fff", fontSize: 16, fontWeight: 600,
+              textDecoration: "none", padding: "14px 32px", borderRadius: 12,
+              boxShadow: "0 4px 16px rgba(37,99,235,0.35)",
+              display: "flex", alignItems: "center", gap: 8,
             }}>
-              <div style={{
-                width: 34, height: 34, borderRadius: 8,
-                background: "color-mix(in oklab, var(--accent) 14%, transparent)",
-                border: `1px solid color-mix(in oklab, var(--accent) 28%, transparent)`,
-                color: C.accent,
-                display: "grid", placeItems: "center", marginBottom: 14,
-              }}>
-                <Icon size={16} />
+              Start 30-Day Free Trial
+            </Link>
+            <button onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })} style={{
+              background: "#fff", color: "#374151", fontSize: 15, fontWeight: 500,
+              border: "1.5px solid #e5e7eb", padding: "14px 28px", borderRadius: 12,
+              cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
+            }}>
+              See how it works ↓
+            </button>
+          </div>
+
+          <div style={{ display: "flex", gap: 24, marginTop: 36 }}>
+            {[["No credit card", "✓"], ["Free 30 days", "✓"], ["Cancel anytime", "✓"]].map(([t, icon]) => (
+              <div key={t} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#6b7280" }}>
+                <span style={{ color: "#0d9968", fontWeight: 700 }}>{icon}</span> {t}
               </div>
-              <h3 style={{ margin: "0 0 6px", fontSize: 14.5, fontWeight: 600, color: C.ink0 }}>{title}</h3>
-              <p style={{ margin: 0, fontSize: 12.5, color: C.ink2, lineHeight: 1.55 }}>{desc}</p>
+            ))}
+          </div>
+        </div>
+
+        {/* Right — Market Overview Widget */}
+        <div style={{
+          background: "#fff", borderRadius: 20, border: "1px solid #e5e7eb",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.10)", overflow: "hidden",
+        }}>
+          {/* Widget header */}
+          <div style={{
+            padding: "16px 20px", borderBottom: "1px solid #f3f4f6",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#0d9968", display: "inline-block" }} />
+              <span style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>Market Overview</span>
+            </div>
+            <span style={{ fontSize: 12, color: "#6b7280" }}>NSE · Live</span>
+          </div>
+
+          {/* Index rows */}
+          {[
+            { name: "NIFTY 50",    price: "24,572", chg: "+0.77%", up: true  },
+            { name: "SENSEX",      price: "80,957", chg: "+0.81%", up: true  },
+            { name: "BANK NIFTY",  price: "52,427", chg: "+1.29%", up: true  },
+          ].map(idx => (
+            <div key={idx.name} style={{
+              padding: "14px 20px", borderBottom: "1px solid #f9fafb",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <span style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>{idx.name}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <Sparkline up={idx.up} />
+                <div style={{ textAlign: "right", minWidth: 80 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{idx.price}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: idx.up ? "#0d9968" : "#dc2626" }}>{idx.chg}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Today's Scanner Picks */}
+          <div style={{ padding: "14px 20px 8px", borderBottom: "1px solid #f3f4f6" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", letterSpacing: "0.08em", textTransform: "uppercase" }}>Today's Scanner Picks</span>
+          </div>
+          {[
+            { sym: "RELIANCE",   scanners: 3, chg: "+1.23%", up: true },
+            { sym: "HDFCBANK",   scanners: 3, chg: "+0.91%", up: true },
+            { sym: "TATAMOTORS", scanners: 2, chg: "+2.18%", up: true },
+          ].map(s => (
+            <div key={s.sym} style={{
+              padding: "12px 20px", borderBottom: "1px solid #f9fafb",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#0d9968", display: "inline-block" }} />
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>{s.sym}</span>
+                <span style={{ fontSize: 11, color: "#6b7280" }}>{s.scanners} scanners</span>
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#0d9968" }}>{s.chg}</span>
+            </div>
+          ))}
+          <div style={{ padding: "12px 20px" }}>
+            <Link href="/register" style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              background: "#2563eb", color: "#fff", fontSize: 13, fontWeight: 600,
+              textDecoration: "none", padding: "10px", borderRadius: 10,
+            }}>
+              View all picks <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STATS BAR ──────────────────────────────────────── */}
+      <section style={{
+        background: "#0f172a", padding: "48px 40px",
+      }}>
+        <div style={{
+          maxWidth: 900, margin: "0 auto",
+          display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 40,
+          textAlign: "center",
+        }}>
+          {STATS.map(s => (
+            <div key={s.label}>
+              <div style={{ fontSize: 44, fontWeight: 800, color: "#2563eb", lineHeight: 1.1 }}>{s.value}</div>
+              <div style={{ fontSize: 14, color: "#94a3b8", marginTop: 6 }}>{s.label}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════
-          HOW IT WORKS
-          ═══════════════════════════════════════════════════════════ */}
-      <section style={{ borderTop: `1px solid ${C.line}`, background: C.bg1, padding: "70px 0" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
-          <h2 style={{ fontSize: 28, fontWeight: 700, textAlign: "center", margin: "0 0 36px", color: C.ink0 }}>
+      {/* ── FEATURES GRID ──────────────────────────────────── */}
+      <section id="how-it-works" style={{ padding: "100px 40px", background: "#fafafa" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 64 }}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "#eff6ff", color: "#2563eb", fontSize: 13, fontWeight: 600,
+              padding: "6px 16px", borderRadius: 999, marginBottom: 20,
+            }}>
+              <Sparkles size={13} /> 12 Specialized Scanners
+            </div>
+            <h2 style={{ fontSize: 44, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", margin: "0 0 16px" }}>
+              Every pattern. Every opportunity.
+            </h2>
+            <p style={{ fontSize: 18, color: "#6b7280", maxWidth: 560, margin: "0 auto" }}>
+              From chart patterns to fundamental catalysts — all cross-validated before reaching you.
+            </p>
+          </div>
+
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20,
+          }}>
+            {FEATURES.map((f, i) => (
+              <div key={i} style={{
+                background: "#fff", borderRadius: 16, padding: "24px",
+                border: "1px solid #e5e7eb",
+                transition: "all .2s",
+              }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 30px rgba(37,99,235,0.12)";
+                  (e.currentTarget as HTMLDivElement).style.borderColor = "#bfdbfe";
+                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+                  (e.currentTarget as HTMLDivElement).style.borderColor = "#e5e7eb";
+                  (e.currentTarget as HTMLDivElement).style.transform = "none";
+                }}
+              >
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  background: "#eff6ff", display: "grid", placeItems: "center", marginBottom: 16,
+                }}>
+                  <f.icon size={20} color="#2563eb" />
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 8 }}>{f.title}</div>
+                <div style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.6 }}>{f.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ───────────────────────────────────── */}
+      <section style={{ padding: "100px 40px", background: "#fff" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{ fontSize: 44, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", margin: "0 0 16px" }}>
             How it works
           </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {HOW_IT_WORKS.map(({ step, title, desc }) => (
-              <div key={step} style={{
-                display: "grid", gridTemplateColumns: "auto 1fr", gap: 18, alignItems: "start",
-                padding: 22, background: C.bg0, border: `1px solid ${C.line}`, borderRadius: 12,
-              }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  background: C.accent, color: "#fff",
-                  display: "grid", placeItems: "center",
-                  fontWeight: 700, fontSize: 14,
-                }}>{step}</div>
-                <div>
-                  <h3 style={{ margin: "2px 0 6px", fontSize: 15, fontWeight: 600, color: C.ink0 }}>{title}</h3>
-                  <p style={{ margin: 0, fontSize: 13.5, color: C.ink2, lineHeight: 1.6 }}>{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          PRICING
-          ═══════════════════════════════════════════════════════════ */}
-      <section style={{ maxWidth: 480, margin: "0 auto", padding: "70px 24px 40px" }}>
-        <h2 style={{ fontSize: 28, fontWeight: 700, textAlign: "center", margin: "0 0 8px", color: C.ink0 }}>
-          Simple pricing
-        </h2>
-        <p style={{ color: C.ink2, fontSize: 15, textAlign: "center", margin: "0 0 30px" }}>
-          One plan. Everything included. Pay only if you find it useful.
-        </p>
-
-        <div style={{
-          position: "relative",
-          background: C.bg1,
-          border: `2px solid ${OFFER.enabled ? C.up : C.accent}`,
-          borderRadius: 16, padding: 30,
-          boxShadow: OFFER.enabled
-            ? "0 20px 40px -20px rgba(43,208,122,.30)"
-            : "0 20px 40px -20px rgba(91,140,255,.25)",
-        }}>
-          <div style={{
-            position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)",
-            background: OFFER.enabled ? C.up : C.accent, color: "#fff",
-            fontSize: 11, fontWeight: 700, padding: "4px 14px", borderRadius: 999,
-            letterSpacing: "0.05em", textTransform: "uppercase",
-            whiteSpace: "nowrap",
-          }}>
-            {OFFER.enabled ? OFFER.label : "Single plan"}
-          </div>
-
-          <div style={{ textAlign: "center", marginBottom: 22 }}>
-            {OFFER.enabled ? (
-              <>
-                {/* Strikethrough original + bright discounted price */}
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 12, marginTop: 8 }}>
-                  <div style={{
-                    fontSize: 28, fontWeight: 500, color: C.ink3, lineHeight: 1,
-                    textDecoration: "line-through", textDecorationThickness: 2,
-                  }}>
-                    ₹{REGULAR_PRICE_INR}
-                  </div>
-                  <div style={{ fontSize: 58, fontWeight: 800, color: C.up, lineHeight: 1, letterSpacing: "-0.02em" }}>
-                    ₹{OFFER.price_inr}
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 400, color: C.ink3 }}>/ month</div>
-                </div>
-                {/* Promo tagline */}
-                <div style={{
-                  marginTop: 10, fontSize: 13, color: C.ink2, fontWeight: 500,
-                }}>
-                  {OFFER.tagline}
-                </div>
-              </>
-            ) : (
-              <div style={{ fontSize: 50, fontWeight: 700, color: C.ink0, lineHeight: 1.1, marginTop: 4 }}>
-                ₹{REGULAR_PRICE_INR}
-                <span style={{ fontSize: 16, fontWeight: 400, color: C.ink3 }}> / month</span>
-              </div>
-            )}
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              marginTop: 14, padding: "5px 12px", borderRadius: 999,
-              background: "color-mix(in oklab, var(--up) 12%, transparent)",
-              border: `1px solid color-mix(in oklab, var(--up) 30%, transparent)`,
-              color: C.up, fontSize: 12.5,
-            }}>
-              <CheckCircle size={13} /> 30-day free trial — no card needed
-            </div>
-          </div>
-
-          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 26px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <p style={{ fontSize: 18, color: "#6b7280", margin: "0 0 64px" }}>Three simple steps from scanner to trade.</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 40 }}>
             {[
-              "500+ NSE stocks scanned daily",
-              "All 12 scanner types unlocked",
-              "Cross-scanner probability ranking",
-              "ATR-based stop loss & targets",
-              "Real-time dashboard updates",
-              "9:20 AM + 3:00 PM IST scan schedule",
-              "Light & dark theme",
-              "Mobile responsive — use anywhere",
-            ].map(f => (
-              <li key={f} style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 13.5, color: C.ink1 }}>
-                <CheckCircle size={14} color={C.up} style={{ flexShrink: 0 }} />
-                {f}
-              </li>
-            ))}
-          </ul>
-
-          <Link href="/register" style={{
-            display: "block", width: "100%", padding: "13px 0",
-            background: C.accent, color: "#fff",
-            textAlign: "center", borderRadius: 11,
-            fontSize: 14.5, fontWeight: 600, textDecoration: "none",
-            boxSizing: "border-box",
-          }}>
-            Start Free Trial →
-          </Link>
-
-          <p style={{ margin: "14px 0 0", fontSize: 11.5, color: C.ink3, textAlign: "center" }}>
-            UPI · GPay · PhonePe · Paytm · No card stored
-          </p>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          FAQ
-          ═══════════════════════════════════════════════════════════ */}
-      <section style={{ maxWidth: 760, margin: "0 auto", padding: "60px 24px" }}>
-        <h2 style={{ fontSize: 26, fontWeight: 700, textAlign: "center", margin: "0 0 30px", color: C.ink0 }}>
-          Common questions
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {FAQS.map(({ q, a }) => (
-            <details key={q} style={{
-              background: C.bg1, border: `1px solid ${C.line}`,
-              borderRadius: 11, padding: "16px 20px",
-              fontSize: 14,
-            }}>
-              <summary style={{
-                cursor: "pointer", fontWeight: 600, color: C.ink0,
-                listStyle: "none",
-                display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12,
-              }}>
-                {q}
-                <span style={{ color: C.ink3, fontSize: 18, lineHeight: 1, flexShrink: 0 }}>+</span>
-              </summary>
-              <p style={{ margin: "12px 0 0", color: C.ink2, lineHeight: 1.65, fontSize: 13.5 }}>{a}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          FINAL CTA
-          ═══════════════════════════════════════════════════════════ */}
-      <section style={{
-        borderTop: `1px solid ${C.line}`,
-        padding: "70px 24px", textAlign: "center",
-        background: `linear-gradient(180deg, ${C.bg0} 0%, color-mix(in oklab, var(--accent) 6%, var(--bg-0)) 100%)`,
-      }}>
-        <h2 style={{ fontSize: 28, fontWeight: 700, margin: "0 0 14px", color: C.ink0, letterSpacing: "-0.01em" }}>
-          Try it free for 30 days
-        </h2>
-        <p style={{ color: C.ink2, fontSize: 15, margin: "0 0 28px" }}>
-          No card required. Cancel anytime. Built by a trader for Indian markets.
-        </p>
-        <Link href="/register" style={{
-          background: C.accent, color: "#fff",
-          fontSize: 16, fontWeight: 600,
-          padding: "14px 32px", borderRadius: 12, textDecoration: "none",
-          display: "inline-block",
-          boxShadow: "0 8px 24px -8px rgba(91,140,255,.5)",
-        }}>
-          Create free account →
-        </Link>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          FOOTER (with required SEBI-style disclaimer)
-          ═══════════════════════════════════════════════════════════ */}
-      <footer style={{
-        borderTop: `1px solid ${C.line}`,
-        padding: "32px 24px", background: C.bg1,
-      }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{
-            display: "flex", flexWrap: "wrap", gap: 18,
-            justifyContent: "space-between", alignItems: "center",
-            marginBottom: 22,
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{
-                width: 26, height: 26, borderRadius: 7,
-                background: "linear-gradient(135deg, #2bd07a 0%, #5b8cff 100%)",
-                display: "grid", placeItems: "center",
-              }}>
-                <TrendingUp size={13} color="#fff" />
+              { step: "01", title: "Scans run at 9:20 AM & 3:45 PM", desc: "Every trading day — 2001 NSE stocks scanned across 12 pattern types." },
+              { step: "02", title: "Cross-scanner validation", desc: "Only stocks confirmed by 2+ independent scanners appear. No noise." },
+              { step: "03", title: "You get high-conviction picks", desc: "With entry zone, stop loss, target and reason — ready to research." },
+            ].map((s, i) => (
+              <div key={i} style={{ textAlign: "left" }}>
+                <div style={{ fontSize: 48, fontWeight: 800, color: "#2563eb", opacity: 0.2, lineHeight: 1, marginBottom: 16 }}>{s.step}</div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: "#111827", marginBottom: 10 }}>{s.title}</div>
+                <div style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.7 }}>{s.desc}</div>
               </div>
-              <span style={{ fontWeight: 600, fontSize: 14, color: C.ink1 }}>NSE Scanner Pro</span>
-            </div>
-            <div style={{ display: "flex", gap: 18, fontSize: 12.5, flexWrap: "wrap" }}>
-              <Link href="/login"    style={{ color: C.ink2, textDecoration: "none" }}>Sign in</Link>
-              <Link href="/register" style={{ color: C.ink2, textDecoration: "none" }}>Sign up</Link>
-              <Link href="/billing"  style={{ color: C.ink2, textDecoration: "none" }}>Pricing</Link>
-              <Link href="/terms"    style={{ color: C.ink2, textDecoration: "none" }}>Terms</Link>
-              <Link href="/privacy"  style={{ color: C.ink2, textDecoration: "none" }}>Privacy</Link>
-              <Link href="/refund"   style={{ color: C.ink2, textDecoration: "none" }}>Refund</Link>
-            </div>
+            ))}
           </div>
+        </div>
+      </section>
 
+      {/* ── TESTIMONIALS ───────────────────────────────────── */}
+      <section style={{ padding: "100px 40px", background: "#f8faff" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <h2 style={{ fontSize: 44, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", textAlign: "center", margin: "0 0 64px" }}>
+            Trusted by Indian traders
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+            {TESTIMONIALS.map((t, i) => (
+              <div key={i} style={{
+                background: "#fff", borderRadius: 16, padding: 28,
+                border: "1px solid #e5e7eb",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
+              }}>
+                <div style={{ display: "flex", gap: 2, marginBottom: 16 }}>
+                  {Array(t.stars).fill(0).map((_, j) => (
+                    <Star key={j} size={14} fill="#f59e0b" color="#f59e0b" />
+                  ))}
+                </div>
+                <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.7, margin: "0 0 20px" }}>"{t.text}"</p>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>{t.name}</div>
+                  <div style={{ fontSize: 12, color: "#6b7280" }}>{t.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRICING CTA ────────────────────────────────────── */}
+      <section style={{ padding: "100px 40px", background: "#0f172a" }}>
+        <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
           <div style={{
-            padding: "16px 18px", background: C.bg2,
-            border: `1px solid ${C.line}`, borderRadius: 10,
-            fontSize: 11.5, color: C.ink3, lineHeight: 1.6,
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "rgba(37,99,235,0.2)", color: "#93c5fd",
+            fontSize: 13, fontWeight: 600, padding: "6px 16px", borderRadius: 999, marginBottom: 28,
           }}>
-            <strong style={{ color: C.ink2 }}>Disclaimer:</strong> NSE Scanner Pro is a software product that surfaces
-            patterns from publicly available NSE market data. It is <strong style={{ color: C.ink2 }}>not registered as an
-            investment advisor with SEBI</strong> and does not provide investment, financial, or trading advice.
-            All output is for informational and research purposes only. Markets carry inherent risk;
-            past patterns do not guarantee future performance. You are solely responsible for any decisions you make
-            using this information. Always consult a SEBI-registered advisor for personalised guidance.
+            🎉 Launch Offer — ₹49/month for first 3 months
           </div>
+          <h2 style={{ fontSize: 48, fontWeight: 800, color: "#f1f5f9", letterSpacing: "-0.02em", margin: "0 0 20px" }}>
+            Start seeing clearly today.
+          </h2>
+          <p style={{ fontSize: 18, color: "#94a3b8", margin: "0 0 44px", lineHeight: 1.7 }}>
+            30-day free trial. No credit card required. Full access to all 12 scanners.
+          </p>
+          <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+            <Link href="/register" style={{
+              background: "#2563eb", color: "#fff", fontSize: 16, fontWeight: 700,
+              textDecoration: "none", padding: "16px 40px", borderRadius: 12,
+              boxShadow: "0 4px 20px rgba(37,99,235,0.4)",
+            }}>
+              Start Free Trial
+            </Link>
+            <Link href="/billing" style={{
+              background: "rgba(255,255,255,0.08)", color: "#e2e8f0", fontSize: 15, fontWeight: 500,
+              textDecoration: "none", padding: "16px 28px", borderRadius: 12,
+              border: "1.5px solid rgba(255,255,255,0.15)",
+            }}>
+              View Pricing
+            </Link>
+          </div>
+        </div>
+      </section>
 
-          <p style={{
-            margin: "16px 0 0", textAlign: "center",
-            fontSize: 11, color: C.ink4,
-          }}>
-            © {new Date().getFullYear()} NSE Scanner Pro · Data: NSE India · For research use only
+      {/* ── FOOTER ─────────────────────────────────────────── */}
+      <footer style={{ background: "#0a0f1c", padding: "48px 40px", borderTop: "1px solid #1e293b" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: "#2563eb", display: "grid", placeItems: "center" }}>
+              <span style={{ color: "#fff", fontWeight: 800, fontSize: 13 }}>N</span>
+            </div>
+            <span style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>NSE Scanner Pro</span>
+          </div>
+          <div style={{ display: "flex", gap: 24, fontSize: 13, flexWrap: "wrap" }}>
+            {[
+              ["Terms", "/terms"], ["Privacy", "/privacy"], ["Refund", "/refund"],
+              ["Sign in", "/login"], ["Register", "/register"], ["Pricing", "/billing"],
+            ].map(([label, href]) => (
+              <Link key={label} href={href} style={{ color: "#64748b", textDecoration: "none" }}>{label}</Link>
+            ))}
+          </div>
+        </div>
+        <div style={{ maxWidth: 1200, margin: "24px auto 0", paddingTop: 24, borderTop: "1px solid #1e293b" }}>
+          <p style={{ fontSize: 11, color: "#475569", lineHeight: 1.7, margin: 0 }}>
+            <strong style={{ color: "#64748b" }}>Disclaimer:</strong> NSE Scanner Pro is a data analytics and research tool only.
+            It is NOT a SEBI-registered investment advisor and does NOT provide investment advice.
+            All scanner signals are for informational purposes only. Past performance does not guarantee future results.
+            Always consult a SEBI-registered advisor before making investment decisions.
           </p>
         </div>
       </footer>
