@@ -156,23 +156,6 @@ export default function Landing() {
   return (
     <div style={{ fontFamily:FONT, background:C.bg, color:C.navy, minHeight:"100vh", overflowX:"hidden" }}>
 
-      {/* TICKER */}
-      <div style={{ background:"#0F172A", height:34, display:"flex", alignItems:"center", overflow:"hidden" }}>
-        <div style={{
-          display:"flex", gap:40, whiteSpace:"nowrap",
-          animation:"ticker 35s linear infinite", fontSize:12.5, fontWeight:500,
-        }}>
-          {[...TICKERS,...TICKERS,...TICKERS].map((t,i) => (
-            <span key={i} style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ color:"#94A3B8" }}>{t.sym}</span>
-              <span style={{ color:"#F1F5F9", fontWeight:600 }}>{t.price}</span>
-              <span style={{ color: t.up ? "#4ADE80" : "#F87171", fontWeight:600 }}>{t.chg}</span>
-            </span>
-          ))}
-        </div>
-        <style>{`@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-33.33%)}}`}</style>
-      </div>
-
       {/* NAVBAR */}
       <header style={{
         background:"rgba(255,255,255,0.92)", backdropFilter:"blur(16px)",
