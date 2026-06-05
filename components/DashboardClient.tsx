@@ -47,7 +47,7 @@ interface Props {
   promoEnabled?:   boolean;  // is the launch offer currently active site-wide?
 }
 
-type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "flatup" | "flatdown" | "doubletop" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "bulkdeals" | "sectors" | "broker" | "ranking";
+type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "flatup" | "flatdown" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "bulkdeals" | "sectors" | "broker" | "ranking";
 
 /* ── Nav dropdown for dashboard ─────────────────────── */
 function DashDropdown({
@@ -223,7 +223,6 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "turnaround",label: "Turnaround Plays",       emoji: "↺",  desc: "Higher-low recovery setups" },
     { id: "flatup",    label: "Flat Base Breakout ↑",   emoji: "📦", desc: "Consolidation breakout bullish" },
     { id: "flatdown",  label: "Flat Base Breakdown ↓",  emoji: "📉", desc: "Consolidation breakdown bearish" },
-    { id: "doubletop", label: "Double Top Pattern",     emoji: "⛰",  desc: "Two peaks — reversal signal" },
   ];
 
   // ── Stock Analysis dropdown ─────────────────────
@@ -466,7 +465,6 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "nextday"    && <NextDayView      panelsData={panelsData} />}
           {tab === "flatup"     && <ComingSoonView   title="Flat Base Breakout ↑" emoji="📦" desc="Stocks in tight consolidation (range <10%) for 75-120 days, EMA-51 flat, now breaking ABOVE the base with volume confirmation." />}
           {tab === "flatdown"   && <ComingSoonView   title="Flat Base Breakdown ↓" emoji="📉" desc="Stocks consolidating flat for months, now breaking BELOW the base — bearish setup with declining volume and death cross confirmation." />}
-          {tab === "doubletop"  && <ComingSoonView   title="Double Top Pattern" emoji="⛰" desc="Two peaks at similar price level followed by breakdown below neckline — high-probability reversal signal with volume confirmation." />}
           {tab === "multibagger"&& <ComingSoonView   title="Multibagger Picks" emoji="💎" desc="Long-term high-conviction setups. Criteria coming soon." />}
         </main>
 

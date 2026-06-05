@@ -46,7 +46,6 @@ const CHART_ITEMS = [
   { label:"Turnaround Plays",     desc:"Higher-low recovery setups",           emoji:"↺" },
   { label:"Flat Base Breakout ↑", desc:"Consolidation breakout — bullish",    emoji:"📦" },
   { label:"Flat Base Breakdown ↓",desc:"Consolidation breakdown — bearish",   emoji:"📉" },
-  { label:"Double Top Pattern",   desc:"Two peaks — high-prob reversal",       emoji:"⛰" },
 ];
 const ANALYSIS_ITEMS = [
   { label:"Big Movers",           desc:"Volume surge + catalyst stocks",       emoji:"⚡" },
@@ -140,7 +139,7 @@ const FEATURES = [
   { emoji:"🏦", title:"Bulk Deals",      desc:"NSE-published institutional buying. 3+ days accumulation = high conviction." },
   { emoji:"🔻", title:"Stocks to Fall",  desc:"RSI ≤45 + Death Cross OR RSI >81 + price falling + volume declining." },
   { emoji:"🎯", title:"Next Day Picks",  desc:"EOD analysis for tomorrow morning. EMA-51 proximity + news catalyst + volume." },
-  { emoji:"⛰",  title:"Double Top",     desc:"Two peaks at similar price level — high-probability reversal signal." },
+  { emoji:"📦", title:"Flat Base Breakout",desc:"Tight 90-day consolidation breaking out with volume confirmation." },
   { emoji:"🏆", title:"Probability Rank",desc:"9-dimension composite score. Only 2+ scanner confirmation shown — no noise." },
 ];
 
