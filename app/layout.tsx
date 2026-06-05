@@ -41,12 +41,12 @@ export const metadata: Metadata = {
 };
 
 // Tiny inline script — runs before paint to apply the user's saved theme
-// (prevents a "flash of dark" on light-preferring users on first load)
-const THEME_BOOT = `(function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;
+// Default to LIGHT so the dashboard matches the landing page on first load.
+const THEME_BOOT = `(function(){try{var t=localStorage.getItem('theme');if(!t)t='light';document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" data-theme="light">
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>
