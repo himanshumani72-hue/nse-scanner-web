@@ -76,9 +76,9 @@ function DashDropdown({
         style={{
           display: "flex", alignItems: "center", gap: 5,
           background: "none", border: "none", cursor: "pointer",
-          fontSize: 15, fontWeight: isActive ? 600 : 500,
-          color: isActive ? "var(--accent)" : "var(--ink-1)",
-          padding: "16px 12px 14px",
+          fontSize: 16, fontWeight: 600,
+          color: isActive ? "var(--accent)" : "var(--ink-0)",
+          padding: "16px 14px 14px",
           borderBottom: `2px solid ${isActive ? "var(--accent)" : "transparent"}`,
           marginBottom: -1, transition: "all .12s",
           fontFamily: "inherit",
@@ -214,7 +214,6 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "movers",   label: "Big Movers",      icon: ICONS.Bolt,  count: movers.length || null },
     { id: "twitter",  label: "Buzz Spike",      icon: ICONS.Rocket,count: twitter.length || null },
     { id: "sectors",  label: "Sector Rotation", icon: ICONS.Globe, count: sectors.length || null },
-    { id: "ranking",  label: "Probability",     icon: ICONS.Trophy,count: panelsData?.ranking?.length ?? null },
   ];
 
   // ── Chart Patterns dropdown ─────────────────────
@@ -229,6 +228,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
 
   // ── Stock Analysis dropdown ─────────────────────
   const STOCK_ANALYSIS_ITEMS: { id: Tab; label: string; emoji: string; desc: string }[] = [
+    { id: "ranking",    label: "Probability Ranking",  emoji: "🏆", desc: "Top stocks across all scanners" },
     { id: "momentum",   label: "Momentum Strategy",    emoji: "🚀", desc: "RSI cross-70 + delivery" },
     { id: "falling",    label: "Stocks About to Fall", emoji: "🔻", desc: "Death cross + RSI exhaustion" },
     { id: "nextday",    label: "Next Day Potential",   emoji: "🎯", desc: "EOD picks for tomorrow" },
@@ -242,6 +242,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     patterns:   patterns.length,
     wpattern:   wPats.length,
     turnaround: turnaround.length,
+    ranking:    panelsData?.ranking?.length ?? 0,
     momentum:   momentum.length,
     falling:    (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)),
     nextday:    panelsData?.next_day?.length ?? 0,
@@ -377,8 +378,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
                 padding: "16px 14px 14px", margin: "0 2px",
                 background: "transparent", border: "none",
                 borderBottom: `2px solid ${isActive ? "var(--accent)" : "transparent"}`,
-                color: isActive ? "var(--accent)" : "var(--ink-2)",
-                fontSize: 15, fontWeight: isActive ? 600 : 500,
+                color: isActive ? "var(--accent)" : "var(--ink-0)",
+                fontSize: 16, fontWeight: 600,
                 fontFamily: "inherit", cursor: "pointer",
                 transition: "color .12s ease, border-color .12s ease",
                 marginBottom: -1, whiteSpace: "nowrap",
@@ -425,8 +426,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
             padding: "16px 14px 14px",
             background: "transparent", border: "none",
             borderBottom: `2px solid ${tab === "broker" ? "var(--accent)" : "transparent"}`,
-            color: tab === "broker" ? "var(--accent)" : "var(--ink-2)",
-            fontSize: 15, fontWeight: tab === "broker" ? 600 : 500,
+            color: tab === "broker" ? "var(--accent)" : "var(--ink-0)",
+            fontSize: 16, fontWeight: 600,
             fontFamily: "inherit", cursor: "pointer", marginBottom: -1,
             whiteSpace: "nowrap",
           }}>
