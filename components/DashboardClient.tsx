@@ -76,7 +76,7 @@ function DashDropdown({
         style={{
           display: "flex", alignItems: "center", gap: 5,
           background: "none", border: "none", cursor: "pointer",
-          fontSize: 13.5, fontWeight: isActive ? 600 : 500,
+          fontSize: 15, fontWeight: isActive ? 600 : 500,
           color: isActive ? "var(--accent)" : "var(--ink-1)",
           padding: "16px 12px 14px",
           borderBottom: `2px solid ${isActive ? "var(--accent)" : "transparent"}`,
@@ -378,7 +378,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
                 background: "transparent", border: "none",
                 borderBottom: `2px solid ${isActive ? "var(--accent)" : "transparent"}`,
                 color: isActive ? "var(--accent)" : "var(--ink-2)",
-                fontSize: 13.5, fontWeight: isActive ? 600 : 500,
+                fontSize: 15, fontWeight: isActive ? 600 : 500,
                 fontFamily: "inherit", cursor: "pointer",
                 transition: "color .12s ease, border-color .12s ease",
                 marginBottom: -1, whiteSpace: "nowrap",
@@ -426,7 +426,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
             background: "transparent", border: "none",
             borderBottom: `2px solid ${tab === "broker" ? "var(--accent)" : "transparent"}`,
             color: tab === "broker" ? "var(--accent)" : "var(--ink-2)",
-            fontSize: 13.5, fontWeight: tab === "broker" ? 600 : 500,
+            fontSize: 15, fontWeight: tab === "broker" ? 600 : 500,
             fontFamily: "inherit", cursor: "pointer", marginBottom: -1,
             whiteSpace: "nowrap",
           }}>

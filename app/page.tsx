@@ -69,7 +69,7 @@ function Dropdown({ label, items }: { label:string; items:typeof CHART_ITEMS }) 
     <div ref={ref} style={{ position:"relative" }}>
       <button onClick={() => setOpen(!open)} style={{
         display:"flex", alignItems:"center", gap:4, background:"none", border:"none",
-        fontFamily:FONT, fontSize:16, fontWeight:500, color:C.navy, cursor:"pointer", padding:"10px 4px",
+        fontFamily:FONT, fontSize:17, fontWeight:500, color:C.navy, cursor:"pointer", padding:"10px 4px",
       }}>
         {label}
         <ChevronDown size={14} style={{ color:C.text3, transform:open?"rotate(180deg)":"none", transition:"transform .2s" }}/>
@@ -199,12 +199,12 @@ export default function Landing() {
         <nav style={{ display:"flex", alignItems:"center", gap:12 }}>
           <Dropdown label="Chart Patterns" items={CHART_ITEMS} />
           <Dropdown label="Stock Analysis"  items={ANALYSIS_ITEMS} />
-          <Link href="/dashboard" style={{ fontSize:16, fontWeight:500, color:C.navy, textDecoration:"none", padding:"10px 8px" }}>Sector Rotation</Link>
-          <Link href="/billing"   style={{ fontSize:16, fontWeight:500, color:C.navy, textDecoration:"none", padding:"10px 8px" }}>Pricing</Link>
+          <Link href="/dashboard" style={{ fontSize:17, fontWeight:500, color:C.navy, textDecoration:"none", padding:"10px 8px" }}>Sector Rotation</Link>
+          <Link href="/billing"   style={{ fontSize:17, fontWeight:500, color:C.navy, textDecoration:"none", padding:"10px 8px" }}>Pricing</Link>
         </nav>
 
         <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-          <Link href="/login" style={{ fontSize:16, fontWeight:500, color:C.navy, textDecoration:"none" }}>Sign in</Link>
+          <Link href="/login" style={{ fontSize:17, fontWeight:500, color:C.navy, textDecoration:"none" }}>Sign in</Link>
           <Link href="/register" style={{
             background:C.blue, color:"#fff", fontSize:15, fontWeight:600,
             textDecoration:"none", padding:"11px 26px", borderRadius:10,
