@@ -34,33 +34,34 @@
 }
 
 /* ─────────────────────────────────────────────────────────
-   LIGHT THEME
-   White background · black text · blue accents
-   Semantic green/red kept for up/down signals (more vivid)
+   LIGHT THEME — Matches landing page design exactly
+   Background: #EEF2FF lavender · Cards: white · Blue: #3D7EFF
+   Font: Inter (same as landing page)
    ───────────────────────────────────────────────────────── */
 [data-theme="light"] {
-  --bg-0:      #ffffff;             /* page background */
-  --bg-1:      #f7f9fc;             /* card surface */
-  --bg-2:      #eef2f7;             /* raised / row-stripe */
-  --bg-3:      #e3e9f1;             /* hover */
-  --line:      #dde3ec;             /* default border */
-  --line-2:    #c7d0db;             /* stronger border */
-  --ink-0:     #0a0f1c;             /* primary text — near black */
-  --ink-1:     #1f2937;             /* secondary text */
-  --ink-2:     #475569;             /* tertiary text */
-  --ink-3:     #6b7280;             /* muted text */
-  --ink-4:     #94a3b8;             /* placeholder */
-  --up:        #0d9968;             /* green darker for light bg contrast */
-  --up-bg:     rgba(13,153,104,.08);
-  --up-line:   rgba(13,153,104,.30);
-  --down:      #dc2626;             /* red */
-  --down-bg:   rgba(220,38,38,.08);
+  --bg-0:      #EEF2FF;             /* lavender page background — matches landing page */
+  --bg-1:      #FFFFFF;             /* white cards */
+  --bg-2:      #F5F7FF;             /* slightly tinted rows */
+  --bg-3:      #E8EDFF;             /* hover state */
+  --line:      #E5E7EB;             /* border — matches landing page C.border */
+  --line-2:    #D1D5DB;             /* stronger border */
+  --ink-0:     #0A0F1E;             /* deep navy — matches landing page C.navy */
+  --ink-1:     #1F2937;             /* secondary text */
+  --ink-2:     #4B5563;             /* tertiary — matches C.text2 */
+  --ink-3:     #6B7280;             /* muted — matches C.text3 */
+  --ink-4:     #9CA3AF;             /* placeholder */
+  --up:        #16A34A;             /* green — matches C.green */
+  --up-bg:     #F0FDF4;             /* matches C.greenBg */
+  --up-line:   rgba(22,163,74,.30);
+  --down:      #DC2626;             /* red — matches C.red */
+  --down-bg:   #FEF2F2;             /* matches C.redBg */
   --down-line: rgba(220,38,38,.30);
-  --accent:    #2563eb;             /* primary blue */
-  --accent-2:  #1d4ed8;             /* deeper blue */
-  --warn:      #c2680b;             /* amber */
-  --warn-bg:   rgba(194,104,11,.10);
-  --violet:    #7c3aed;
+  --accent:    #3D7EFF;             /* PRIMARY BLUE — matches landing page C.blue */
+  --accent-2:  #2563EB;             /* deeper blue */
+  --warn:      #D97706;             /* amber */
+  --warn-bg:   rgba(217,119,6,.10);
+  --violet:    #7C3AED;
+  --mono:      'JetBrains Mono', ui-monospace, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -68,7 +69,8 @@ html, body {
   margin: 0; padding: 0;
   background: var(--bg-0);
   color: var(--ink-0);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';  /* Inter optical sizing */
   -webkit-font-smoothing: antialiased;
   transition: background-color .2s ease, color .2s ease;
 }
