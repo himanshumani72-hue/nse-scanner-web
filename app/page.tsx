@@ -21,7 +21,7 @@ const C = {
   borderL:   "#F3F4F6",
 };
 
-const FONT = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+const FONT = "'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
 
 /* ─────────────────── TICKER ────────────────────────────── */
 const TICKERS = [
@@ -68,8 +68,8 @@ function Dropdown({ label, items }: { label:string; items:typeof CHART_ITEMS }) 
   return (
     <div ref={ref} style={{ position:"relative" }}>
       <button onClick={() => setOpen(!open)} style={{
-        display:"flex", alignItems:"center", gap:4, background:"none", border:"none",
-        fontFamily:FONT, fontSize:17, fontWeight:500, color:C.navy, cursor:"pointer", padding:"10px 4px",
+        display:"flex", alignItems:"center", gap:5, background:"none", border:"none",
+        fontFamily:FONT, fontSize:18, fontWeight:600, color:C.navy, cursor:"pointer", padding:"10px 6px",
       }}>
         {label}
         <ChevronDown size={14} style={{ color:C.text3, transform:open?"rotate(180deg)":"none", transition:"transform .2s" }}/>
@@ -188,7 +188,7 @@ export default function Landing() {
           }}>
             <span style={{ color:"#fff", fontWeight:800, fontSize:18, fontFamily:FONT }}>N</span>
           </div>
-          <span style={{ fontSize:18, fontWeight:700, color:C.navy, letterSpacing:"-0.02em" }}>NSE Scanner</span>
+          <span style={{ fontSize:20, fontWeight:700, color:C.navy, letterSpacing:"-0.02em" }}>NSE Scanner</span>
           <span style={{
             fontSize:11, fontWeight:700, color:C.blue,
             background:`${C.blue}15`, padding:"2px 8px", borderRadius:6,
@@ -199,12 +199,12 @@ export default function Landing() {
         <nav style={{ display:"flex", alignItems:"center", gap:12 }}>
           <Dropdown label="Chart Patterns" items={CHART_ITEMS} />
           <Dropdown label="Stock Analysis"  items={ANALYSIS_ITEMS} />
-          <Link href="/dashboard" style={{ fontSize:17, fontWeight:500, color:C.navy, textDecoration:"none", padding:"10px 8px" }}>Sector Rotation</Link>
-          <Link href="/billing"   style={{ fontSize:17, fontWeight:500, color:C.navy, textDecoration:"none", padding:"10px 8px" }}>Pricing</Link>
+          <Link href="/dashboard" style={{ fontSize:18, fontWeight:600, color:C.navy, textDecoration:"none", padding:"10px 8px" }}>Sector Rotation</Link>
+          <Link href="/billing"   style={{ fontSize:18, fontWeight:600, color:C.navy, textDecoration:"none", padding:"10px 8px" }}>Pricing</Link>
         </nav>
 
         <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-          <Link href="/login" style={{ fontSize:17, fontWeight:500, color:C.navy, textDecoration:"none" }}>Sign in</Link>
+          <Link href="/login" style={{ fontSize:18, fontWeight:600, color:C.navy, textDecoration:"none" }}>Sign in</Link>
           <Link href="/register" style={{
             background:C.blue, color:"#fff", fontSize:15, fontWeight:600,
             textDecoration:"none", padding:"11px 26px", borderRadius:10,
@@ -293,7 +293,7 @@ export default function Landing() {
             { name:"BANK NIFTY", price:"52,427", chg:"+1.30%", up:true  },
           ].map(idx => (
             <div key={idx.name} style={{ padding:"15px 20px", borderBottom:`1px solid ${C.borderL}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <span style={{ fontSize:15, fontWeight:500, color:"#374151" }}>{idx.name}</span>
+              <span style={{ fontSize:17, fontWeight:600, color:C.navy }}>{idx.name}</span>
               <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                 <Spark up={idx.up} />
                 <div style={{ textAlign:"right", minWidth:90 }}>
