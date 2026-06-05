@@ -65,15 +65,34 @@
 }
 
 * { box-sizing: border-box; }
+html {
+  /* Bump rem unit by 14% so anything using rem grows. Doesn't affect px inline styles. */
+  font-size: 18px;
+}
 html, body {
   margin: 0; padding: 0;
   background: var(--bg-0);
   color: var(--ink-0);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';  /* Inter optical sizing */
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   transition: background-color .2s ease, color .2s ease;
 }
+
+/* Globally scale up tiny inline font sizes via CSS attribute selectors.
+   Components use inline styles like font-size: 11px / 12px / 13px — we override them here. */
+body [style*="font-size: 10"]:not([style*="font-size: 10.5"]):not([style*="font-size: 100"]) { font-size: 12px !important; }
+body [style*="font-size: 10.5"] { font-size: 12.5px !important; }
+body [style*="font-size: 11px"], body [style*="font-size:11px"] { font-size: 13px !important; }
+body [style*="font-size: 11.5"] { font-size: 13.5px !important; }
+body [style*="font-size: 12px"], body [style*="font-size:12px"] { font-size: 14px !important; }
+body [style*="font-size: 12.5"] { font-size: 14.5px !important; }
+body [style*="font-size: 13px"], body [style*="font-size:13px"] { font-size: 15px !important; }
+body [style*="font-size: 13.5"] { font-size: 15.5px !important; }
+body [style*="font-size: 14px"], body [style*="font-size:14px"] { font-size: 16px !important; }
+body [style*="font-size: 14.5"] { font-size: 16.5px !important; }
+body [style*="font-size: 15px"], body [style*="font-size:15px"] { font-size: 16.5px !important; }
 
 /* Light theme: tweak the scrollbar so it's not invisible on white */
 [data-theme="light"] ::-webkit-scrollbar-thumb { background: #c7d0db; }
