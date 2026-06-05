@@ -345,6 +345,15 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
               Promo · {promoLeft} month{promoLeft === 1 ? "" : "s"} left at ₹{nextPrice}
             </Link>
           )}
+          {/* Signals captured time */}
+          {lastUpdated && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 8 }}>
+              <PulseDot color="var(--accent)"/>
+              <span style={{ fontSize: 11.5, color: "var(--ink-2)", fontWeight: 500 }}>
+                {fmtTime(lastUpdated)}
+              </span>
+            </div>
+          )}
           <button onClick={toggle} style={{ background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--ink-2)", width: 32, height: 32, borderRadius: 8, display: "grid", placeItems: "center", cursor: "pointer" }}>
             {theme === "dark" ? <Sun size={14}/> : <Moon size={14}/>}
           </button>
@@ -352,39 +361,11 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         </div>
       </header>
 
-      {/* ── Status Strip ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr) auto", gap: 0, borderBottom: "1px solid var(--line)", background: "var(--bg-1)" }}>
-        {stats.map(s => (
-          <div key={s.label} style={{ padding: "16px 22px", borderRight: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: `color-mix(in oklab, var(${s.tone}) 12%, transparent)`, border: `1px solid color-mix(in oklab, var(${s.tone}) 28%, transparent)`, color: `var(${s.tone})`, display: "grid", placeItems: "center" }}>
-              <s.icon/>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
-              <span style={{ fontSize: 10.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.10em", fontWeight: 500 }}>{s.label}</span>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 2 }}>
-                <span className="num" style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--ink-0)" }}>{s.value}</span>
-                <span style={{ fontSize: 11, color: "var(--ink-3)" }}>{s.hint}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-        <div style={{ padding: "16px 24px", display: "flex", flexDirection: "column", justifyContent: "center", minWidth: 200 }}>
-          <span style={{ fontSize: 10.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.10em", fontWeight: 500 }}>Signals Captured</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-            <PulseDot color="var(--accent)"/>
-            <span className="num" style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.01em", color: "var(--ink-0)" }}>{fmtTime(lastUpdated)}</span>
-          </div>
-          <span style={{ fontSize: 10.5, color: "var(--ink-3)", marginTop: 2 }}>
-            {lastUpdated ? "When alerts were scanned" : "Waiting for next scan"}
-          </span>
-        </div>
-      </div>
-
       {/* ── Navigation Bar with Dropdowns ── */}
       <nav style={{
         display: "flex", alignItems: "center", gap: 0,
         padding: "0 28px", borderBottom: "1px solid var(--line)",
-        background: "var(--bg-1)", position: "sticky", top: 61, zIndex: 40,
+        background: "var(--bg-1)", position: "sticky", top: 66, zIndex: 40,
       }}>
         {/* Direct tabs */}
         {DIRECT_TABS.map(t => {

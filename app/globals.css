@@ -68,7 +68,7 @@ html, body {
   margin: 0; padding: 0;
   background: var(--bg-0);
   color: var(--ink-0);
-  font-family: 'Geist', system-ui, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   transition: background-color .2s ease, color .2s ease;
 }
