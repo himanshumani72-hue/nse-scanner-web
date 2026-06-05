@@ -13,7 +13,7 @@ export default function WPatternView({ alerts }: { alerts: Alert[] }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <SectionHdr icon="〰️" title="W-Pattern (15-min chart)" count={alerts.length} hint="Double-bottom reversal patterns · 1-3 day swing trades" />
+      <SectionHdr icon="〰️" title="W-Pattern (15-min chart)" count={alerts.length} hint="1-3 day swing trades · neckline breakout setups" />
 
       <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, overflow: "hidden" }}>
         {/* Table header */}
