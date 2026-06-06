@@ -47,6 +47,8 @@ const DISPLAY_NAME: Record<string, string> = {
   BROKER_UPGRADES:    "Broker Upgrades",
   TWITTER_SPIKE:      "Buzz Spike",
   BB_SQUEEZE:         "BB Squeeze",
+  FLAT_BASE_UP:       "Flat Base ↑",
+  FLAT_BASE_DOWN:     "Flat Base ↓",
   PHOENIX_RECOVERY:   "Phoenix Recovery",
   FLAT_BASE_BREAKOUT: "Flat Base Breakout",
   DASHBOARD_MAIN:     "Dashboard",

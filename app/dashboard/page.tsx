@@ -48,6 +48,8 @@ export default async function DashboardPage() {
   const broker       = alerts?.filter(a => a.scan_type === "BROKER_UPGRADES")      ?? [];
   const twitter      = alerts?.filter(a => a.scan_type === "TWITTER_SPIKE")        ?? [];
   const bbSqueeze    = alerts?.filter(a => a.scan_type === "BB_SQUEEZE")            ?? [];
+  const flatUp       = alerts?.filter(a => a.scan_type === "FLAT_BASE_UP")          ?? [];
+  const flatDown     = alerts?.filter(a => a.scan_type === "FLAT_BASE_DOWN")        ?? [];
   const alertsLast   = alerts?.[0]?.scanned_at ?? null;
 
   // Fetch market overview data
@@ -123,6 +125,8 @@ export default async function DashboardPage() {
       brokerAlerts={broker}
       twitterAlerts={twitter}
       bbSqueezeAlerts={bbSqueeze}
+      flatUpAlerts={flatUp}
+      flatDownAlerts={flatDown}
       marketData={marketData}
       panelsData={panelsData}
       healthData={healthData}

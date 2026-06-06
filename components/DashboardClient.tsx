@@ -17,6 +17,7 @@ import SectorRotationView from "./views/SectorRotationView";
 import BrokerageView from "./views/BrokerageView";
 import TwitterSpikeView from "./views/TwitterSpikeView";
 import BBSqueezeView from "./views/BBSqueezeView";
+import FlatBaseView from "./views/FlatBaseView";
 import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
 import ScannerHealthRail from "./ScannerHealthRail";
@@ -40,6 +41,8 @@ interface Props {
   brokerAlerts?:     Alert[];
   twitterAlerts?:    Alert[];
   bbSqueezeAlerts?:  Alert[];
+  flatUpAlerts?:     Alert[];
+  flatDownAlerts?:   Alert[];
   marketData?:     any;
   panelsData?:     any;
   healthData?:     any;
@@ -144,7 +147,7 @@ const ICONS = {
   W:       () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 3 L3.5 9 L5 5 L7 9 L9 5 L10.5 9" strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], bbSqueezeAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], bbSqueezeAlerts = [], flatUpAlerts = [], flatDownAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
   const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
@@ -158,6 +161,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [broker,      setBroker]     = useState<Alert[]>(brokerAlerts);
   const [twitter,     setTwitter]    = useState<Alert[]>(twitterAlerts);
   const [bbSqueeze,   setBBSqueeze]  = useState<Alert[]>(bbSqueezeAlerts);
+  const [flatUp,      setFlatUp]     = useState<Alert[]>(flatUpAlerts);
+  const [flatDown,    setFlatDown]   = useState<Alert[]>(flatDownAlerts);
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
   const [clock,       setClock]      = useState("");
@@ -198,6 +203,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         if (a.scan_type === "BROKER_UPGRADES")  setBroker(prev     => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "TWITTER_SPIKE")    setTwitter(prev    => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "BB_SQUEEZE")        setBBSqueeze(prev  => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "FLAT_BASE_UP")      setFlatUp(prev     => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "FLAT_BASE_DOWN")    setFlatDown(prev   => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
@@ -247,6 +254,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     wpattern:   wPats.length,
     turnaround: turnaround.length,
     bbsqueeze:  bbSqueeze.length,
+    flatup:     flatUp.length,
+    flatdown:   flatDown.length,
     ranking:    panelsData?.ranking?.length ?? 0,
     momentum:   momentum.length,
     falling:    (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)),
@@ -467,11 +476,11 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "broker"     && <BrokerageView    alerts={broker} />}
           {tab === "twitter"    && <TwitterSpikeView alerts={twitter} />}
           {tab === "bbsqueeze"  && <BBSqueezeView    alerts={bbSqueeze} />}
+          {tab === "flatup"     && <FlatBaseView     alerts={flatUp}   direction="up"   />}
+          {tab === "flatdown"   && <FlatBaseView     alerts={flatDown} direction="down" />}
           {tab === "falling"    && <AboutToFallView  boomerangAlerts={boomerang} panelsData={panelsData} />}
           {tab === "ranking"    && <RankingTable     panelsData={panelsData} />}
           {tab === "nextday"    && <NextDayView      panelsData={panelsData} />}
-          {tab === "flatup"     && <ComingSoonView   title="Flat Base Breakout ↑" emoji="📦" desc="Stocks in tight consolidation (range <10%) for 75-120 days, EMA-51 flat, now breaking ABOVE the base with volume confirmation." />}
-          {tab === "flatdown"   && <ComingSoonView   title="Flat Base Breakdown ↓" emoji="📉" desc="Stocks consolidating flat for months, now breaking BELOW the base — bearish setup with declining volume and death cross confirmation." />}
           {tab === "multibagger"&& <ComingSoonView   title="Multibagger Picks" emoji="💎" desc="Long-term high-conviction setups. Criteria coming soon." />}
         </main>
 
