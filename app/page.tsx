@@ -44,6 +44,7 @@ const CHART_ITEMS = [
   { label:"Cup & Handle",         desc:"EMA-51 recovery base pattern",        emoji:"📈" },
   { label:"W Pattern",            desc:"Double bottom reversal",               emoji:"Ｗ" },
   { label:"Turnaround Plays",     desc:"Higher-low recovery setups",           emoji:"↺" },
+  { label:"BB Squeeze Breakout",  desc:"Narrow band + above midline = coiled spring", emoji:"🎯" },
   { label:"Flat Base Breakout ↑", desc:"Consolidation breakout — bullish",    emoji:"📦" },
   { label:"Flat Base Breakdown ↓",desc:"Consolidation breakdown — bearish",   emoji:"📉" },
 ];
