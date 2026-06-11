@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { PortfolioEnriched, PortfolioAlertsCross } from "@/lib/types";
 import { TrendingUp, TrendingDown, ExternalLink, Plus, Trash2, Edit3 } from "lucide-react";
@@ -57,9 +57,12 @@ export default function PortfolioView() {
   const [alertsCross, setAlertsCross] = useState<PortfolioAlertsCross[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [supabase, setSupabase] = useState<ReturnType<typeof createClient> | null>(null);
 
-  const supabaseRef = useRef(createClient());
-  const supabase = supabaseRef.current;
+  // Lazy-init Supabase client on client-side only (avoids SSR crash)
+  useEffect(() => {
+    setSupabase(createClient());
+  }, []);
 
   // ── Fetch holdings ────────────────────────────────────────────────────
   const fetchHoldings = useCallback(async () => {
@@ -90,6 +93,7 @@ export default function PortfolioView() {
 
   // ── Realtime subscription on portfolio_indicators ────────────────────
   useEffect(() => {
+    if (!supabase) return;
     const channel = supabase
       .channel("portfolio-indicators-live")
       .on("postgres_changes",
@@ -103,7 +107,7 @@ export default function PortfolioView() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, []);  // stable ref — only run once
+  }, [supabase, fetchHoldings, fetchAlertsCross]);
 
   // ── Filtering ────────────────────────────────────────────────────────
   const filtered = holdings.filter(h => {
