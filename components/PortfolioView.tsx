@@ -176,6 +176,12 @@ export default function PortfolioView() {
           <Plus size={16} style={{ marginRight: 6, verticalAlign: "middle" }} />
           Add Stock
         </button>
+        {showAddModal && (
+          <AddStockModal
+            onClose={() => setShowAddModal(false)}
+            onAdded={() => { setShowAddModal(false); fetchHoldings(); }}
+          />
+        )}
       </div>
     );
   }
