@@ -25,3 +25,63 @@ export interface ScanSummary {
   pattern_count: number;
   w_pattern_count: number;
 }
+
+// ── Portfolio types ──────────────────────────────────────────────────
+
+export interface PortfolioHolding {
+  id: string;
+  user_id: string;
+  symbol: string;
+  exchange: "NSE" | "BSE";
+  quantity: number;
+  buy_price: number;
+  buy_date: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PortfolioIndicator {
+  symbol: string;
+  exchange: string;
+  ltp: number | null;
+  prev_close: number | null;
+  change_pct: number | null;
+  volume: number | null;
+  prev_day_volume: number | null;
+  vol_ratio: number | null;
+  rsi_14: number | null;
+  ema_21: number | null;
+  ema_51: number | null;
+  sma_20: number | null;
+  sma_50: number | null;
+  sector: string | null;
+  news_score: number | null;
+  news_headlines: string[] | null;  // list of headline strings from news_utils
+  recommendation: "GOOD_NEWS" | "WARNING" | "RED_FLAG" | "NEUTRAL" | null;
+  recommendation_reasons: string[] | null;
+  updated_at: string | null;
+}
+
+export interface PortfolioEnriched extends PortfolioHolding {
+  indicator: PortfolioIndicator | null;
+  invested: number;          // buy_price × quantity
+  current_value: number;     // ltp × quantity
+  pnl: number;               // current_value − invested
+  pnl_pct: number;           // pnl / invested × 100
+}
+
+export interface PortfolioAlertsCross {
+  symbol: string;
+  scan_type: string;
+  scan_label: string;
+  tab_id: string;
+  scanned_at: string;
+}
+
+export interface SectorAllocation {
+  sector: string;
+  value: number;
+  pct: number;
+  count: number;  // number of stocks in this sector
+}

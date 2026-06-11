@@ -21,6 +21,8 @@ import FlatBaseView from "./views/FlatBaseView";
 import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
 import ScannerHealthRail from "./ScannerHealthRail";
+import PortfolioView from "./PortfolioView";
+import PortfolioSummary from "./PortfolioSummary";
 import Link from "next/link";
 import { Sun, Moon, CreditCard, Sparkles, ChevronDown } from "lucide-react";
 
@@ -52,7 +54,7 @@ interface Props {
   promoEnabled?:   boolean;  // is the launch offer currently active site-wide?
 }
 
-type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "bbsqueeze" | "flatup" | "flatdown" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "bulkdeals" | "sectors" | "broker" | "ranking";
+type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "bbsqueeze" | "flatup" | "flatdown" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "bulkdeals" | "sectors" | "broker" | "ranking" | "portfolio";
 
 /* ── Nav dropdown for dashboard ─────────────────────── */
 function DashDropdown({
@@ -225,6 +227,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "movers",   label: "Big Movers",      icon: ICONS.Bolt,  count: movers.length || null },
     { id: "twitter",  label: "Buzz Spike",      icon: ICONS.Rocket,count: twitter.length || null },
     { id: "sectors",  label: "Sector Rotation", icon: ICONS.Globe, count: sectors.length || null },
+    { id: "portfolio",label: "📊 My Portfolio",  icon: ICONS.Trophy,count: null },
   ];
 
   // ── Chart Patterns dropdown ─────────────────────
@@ -480,6 +483,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "flatdown"   && <FlatBaseView     alerts={flatDown} direction="down" />}
           {tab === "falling"    && <AboutToFallView  boomerangAlerts={boomerang} panelsData={panelsData} />}
           {tab === "ranking"    && <RankingTable     panelsData={panelsData} />}
+          {tab === "portfolio" && <PortfolioTab />}
           {tab === "nextday"    && <NextDayView      panelsData={panelsData} />}
           {tab === "multibagger"&& <ComingSoonView   title="Multibagger Picks" emoji="💎" desc="Long-term high-conviction setups. Criteria coming soon." />}
         </main>
@@ -516,6 +520,36 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         <div style={{ flex: 1 }}/>
         <span className="num">v1.0.0</span>
       </footer>
+    </div>
+  );
+}
+
+/* ── Portfolio Tab (with Holdings / Summary sub-tabs) ──── */
+function PortfolioTab() {
+  const [subTab, setSubTab] = useState<"holdings" | "summary">("holdings");
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
+        {([
+          { id: "holdings" as const, label: "📋 Holdings", desc: "11-column live table" },
+          { id: "summary" as const, label: "📊 Summary", desc: "P&L, sector pie, scanner cross-ref" },
+        ]).map(t => (
+          <button
+            key={t.id}
+            onClick={() => setSubTab(t.id)}
+            style={{
+              padding: "10px 20px", borderRadius: 10, border: "none",
+              background: subTab === t.id ? "var(--accent)" : "var(--bg-2)",
+              color: subTab === t.id ? "#fff" : "var(--ink-2)",
+              fontSize: 14, fontWeight: 600, cursor: "pointer",
+              transition: "all .15s ease",
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {subTab === "holdings" ? <PortfolioView /> : <PortfolioSummary />}
     </div>
   );
 }
