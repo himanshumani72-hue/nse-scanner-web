@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { PortfolioEnriched, PortfolioAlertsCross } from "@/lib/types";
 import { TrendingUp, TrendingDown, ExternalLink, Plus, Trash2, Edit3 } from "lucide-react";
@@ -58,7 +58,8 @@ export default function PortfolioView() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const supabase = createClient();
+  const supabaseRef = useRef(createClient());
+  const supabase = supabaseRef.current;
 
   // ── Fetch holdings ────────────────────────────────────────────────────
   const fetchHoldings = useCallback(async () => {
@@ -102,7 +103,7 @@ export default function PortfolioView() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [supabase, fetchHoldings, fetchAlertsCross]);
+  }, []);  // stable ref — only run once
 
   // ── Filtering ────────────────────────────────────────────────────────
   const filtered = holdings.filter(h => {
