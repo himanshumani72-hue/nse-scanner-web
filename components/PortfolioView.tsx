@@ -241,8 +241,10 @@ export default function PortfolioView() {
                 ["Buy Price", "buy_price"],
                 ["LTP", "ltp"],
                 ["Chg%", "change_pct"],
+                ["Total P&L", "pnl"],
+                ["P&L%", "pnl_pct"],
                 ["Volume", "volume"],
-                ["Prev Vol", null],
+                ["Vol Trend", null],
                 ["RSI", "rsi"],
                 ["EMA21", null],
                 ["EMA51", null],
@@ -314,11 +316,41 @@ export default function PortfolioView() {
                       {(ind?.change_pct ?? 0) >= 0 ? "+" : ""}{ind?.change_pct?.toFixed(2) ?? "—"}%
                     </span>
                   </td>
+                  <td style={{ padding: "10px 12px" }}>
+                    <span style={{
+                      fontWeight: 700, fontSize: 13,
+                      color: h.pnl >= 0 ? "var(--up)" : "var(--down)",
+                    }}>
+                      {h.pnl >= 0 ? "+" : ""}₹{h.pnl.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                    </span>
+                  </td>
+                  <td style={{ padding: "10px 12px" }}>
+                    <span style={{
+                      fontWeight: 600, fontSize: 12,
+                      color: h.pnl_pct >= 0 ? "var(--up)" : "var(--down)",
+                      display: "inline-flex", alignItems: "center", gap: 3,
+                    }}>
+                      {h.pnl_pct >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                      {h.pnl_pct >= 0 ? "+" : ""}{h.pnl_pct.toFixed(2)}%
+                    </span>
+                  </td>
                   <td style={{ padding: "10px 12px", color: "var(--ink-2)", fontSize: 12 }}>
                     {ind?.volume ? (ind.volume / 1000).toFixed(0) + "K" : "—"}
                   </td>
-                  <td style={{ padding: "10px 12px", color: "var(--ink-3)", fontSize: 12 }}>
-                    {ind?.prev_day_volume ? (ind.prev_day_volume / 1000).toFixed(0) + "K" : "—"}
+                  <td style={{ padding: "10px 12px" }}>
+                    {ind?.vol_3d_trend ? (
+                      <span style={{
+                        fontSize: 11, fontWeight: 600,
+                        color: ind.vol_3d_trend.includes("▲") ? "var(--up)"
+                             : ind.vol_3d_trend.includes("▼") ? "var(--down)"
+                             : "var(--ink-2)",
+                        whiteSpace: "nowrap",
+                      }}>
+                        {ind.vol_3d_trend}
+                      </span>
+                    ) : (
+                      <span style={{ color: "var(--ink-4)", fontSize: 11 }}>—</span>
+                    )}
                   </td>
                   <td style={{ padding: "10px 12px" }}>
                     <span style={{

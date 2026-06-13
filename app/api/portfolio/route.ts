@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import type { PortfolioHolding, PortfolioIndicator, PortfolioEnriched } from "@/lib/types";
+import { exec } from "child_process";
 
 // ══════════════════════════════════════════════════════════════════════════
 // GET  /api/portfolio — fetch user's holdings enriched with live indicators
@@ -146,6 +147,14 @@ export async function POST(req: NextRequest) {
       }
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Trigger background indicator fetch so the new stock shows all parameters immediately
+    const sym = symbol.toUpperCase().trim();
+    const pythonCmd = `python -X utf8 -c "from portfolio_refresh_indicators import refresh_single_symbol; import json; r = refresh_single_symbol('${sym}', '${exchange}'); print(json.dumps({'ok': r is not None}))"`;
+    exec(pythonCmd, { cwd: "d:\\Share Market" }, (err, stdout, stderr) => {
+      if (err) console.error(`[portfolio] Indicator fetch failed for ${sym}:`, stderr?.slice(0, 200));
+      else console.log(`[portfolio] Indicator fetched for ${sym}:`, stdout?.trim());
+    });
 
     return NextResponse.json({ holding: data }, { status: 201 });
   } catch (e: any) {

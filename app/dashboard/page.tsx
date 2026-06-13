@@ -44,6 +44,7 @@ export default async function DashboardPage() {
   const turnaround   = alerts?.filter(a => a.scan_type === "TURNAROUND")         ?? [];
   const bulkDeals    = alerts?.filter(a => a.scan_type === "BULK_DEALS")          ?? [];
   const breakout52w  = alerts?.filter(a => a.scan_type === "BREAKOUT_52W")         ?? [];
+  const breakout1d   = alerts?.filter(a => a.scan_type === "BREAKOUT_1D")          ?? [];
   const sectors      = alerts?.filter(a => a.scan_type === "SECTOR_ROTATION")      ?? [];
   const broker       = alerts?.filter(a => a.scan_type === "BROKER_UPGRADES")      ?? [];
   const twitter      = alerts?.filter(a => a.scan_type === "TWITTER_SPIKE")        ?? [];
@@ -121,6 +122,7 @@ export default async function DashboardPage() {
       turnaroundAlerts={turnaround}
       bulkDealsAlerts={bulkDeals}
       breakoutAlerts={breakout52w}
+      breakout1dAlerts={breakout1d}
       sectorAlerts={sectors}
       brokerAlerts={broker}
       twitterAlerts={twitter}

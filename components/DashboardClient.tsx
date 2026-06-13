@@ -18,6 +18,7 @@ import BrokerageView from "./views/BrokerageView";
 import TwitterSpikeView from "./views/TwitterSpikeView";
 import BBSqueezeView from "./views/BBSqueezeView";
 import FlatBaseView from "./views/FlatBaseView";
+import Breakout1DView from "./views/Breakout1DView";
 import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
 import ScannerHealthRail from "./ScannerHealthRail";
@@ -39,6 +40,7 @@ interface Props {
   turnaroundAlerts?: Alert[];
   bulkDealsAlerts?:  Alert[];
   breakoutAlerts?:   Alert[];
+  breakout1dAlerts?: Alert[];
   sectorAlerts?:     Alert[];
   brokerAlerts?:     Alert[];
   twitterAlerts?:    Alert[];
@@ -54,7 +56,7 @@ interface Props {
   promoEnabled?:   boolean;  // is the launch offer currently active site-wide?
 }
 
-type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "bbsqueeze" | "flatup" | "flatdown" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "bulkdeals" | "sectors" | "broker" | "ranking" | "portfolio";
+type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "bbsqueeze" | "flatup" | "flatdown" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "breakout1d" | "bulkdeals" | "sectors" | "broker" | "ranking" | "portfolio";
 
 /* ── Nav dropdown for dashboard ─────────────────────── */
 function DashDropdown({
@@ -149,7 +151,7 @@ const ICONS = {
   W:       () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 3 L3.5 9 L5 5 L7 9 L9 5 L10.5 9" strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], bbSqueezeAlerts = [], flatUpAlerts = [], flatDownAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], breakout1dAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], bbSqueezeAlerts = [], flatUpAlerts = [], flatDownAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
   const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
@@ -159,6 +161,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [turnaround,  setTurnaround] = useState<Alert[]>(turnaroundAlerts);
   const [bulkDeals,   setBulkDeals]  = useState<Alert[]>(bulkDealsAlerts);
   const [breakout,    setBreakout]   = useState<Alert[]>(breakoutAlerts);
+  const [breakout1d,  setBreakout1d] = useState<Alert[]>(breakout1dAlerts);
   const [sectors,     setSectors]    = useState<Alert[]>(sectorAlerts);
   const [broker,      setBroker]     = useState<Alert[]>(brokerAlerts);
   const [twitter,     setTwitter]    = useState<Alert[]>(twitterAlerts);
@@ -201,6 +204,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         if (a.scan_type === "TURNAROUND")       setTurnaround(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "BULK_DEALS")       setBulkDeals(prev  => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "BREAKOUT_52W")     setBreakout(prev   => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "BREAKOUT_1D")      setBreakout1d(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "SECTOR_ROTATION")  setSectors(prev    => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "BROKER_UPGRADES")  setBroker(prev     => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "TWITTER_SPIKE")    setTwitter(prev    => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
@@ -248,6 +252,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "nextday",    label: "Next Day Potential",   emoji: "🎯", desc: "EOD picks for tomorrow" },
     { id: "multibagger",label: "Multibagger Picks",    emoji: "💎", desc: "Long-term high-conviction" },
     { id: "breakout",   label: "52W Breakouts",        emoji: "🏔", desc: "Fresh 52-week highs" },
+    { id: "breakout1d", label: "1D Breakouts",         emoji: "📈", desc: "Daily momentum + vol surge" },
     { id: "bulkdeals",  label: "Bulk Deals",           emoji: "🏦", desc: "Institutional accumulation" },
   ];
 
@@ -264,6 +269,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     falling:    (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)),
     nextday:    panelsData?.next_day?.length ?? 0,
     breakout:   breakout.length,
+    breakout1d: breakout1d.length,
     bulkdeals:  bulkDeals.length,
   };
 
@@ -475,6 +481,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "turnaround" && <TurnaroundView   alerts={turnaround} />}
           {tab === "bulkdeals"  && <BulkDealsView    alerts={bulkDeals} />}
           {tab === "breakout"   && <BreakoutView     alerts={breakout} />}
+          {tab === "breakout1d" && <Breakout1DView  alerts={breakout1d} />}
           {tab === "sectors"    && <SectorRotationView alerts={sectors} />}
           {tab === "broker"     && <BrokerageView    alerts={broker} />}
           {tab === "twitter"    && <TwitterSpikeView alerts={twitter} />}

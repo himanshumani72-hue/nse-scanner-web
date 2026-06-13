@@ -49,6 +49,9 @@ export interface PortfolioIndicator {
   change_pct: number | null;
   volume: number | null;
   prev_day_volume: number | null;
+  prev_2d_volume: number | null;
+  prev_3d_volume: number | null;
+  vol_3d_trend: string | null;
   vol_ratio: number | null;
   rsi_14: number | null;
   ema_21: number | null;
@@ -57,7 +60,7 @@ export interface PortfolioIndicator {
   sma_50: number | null;
   sector: string | null;
   news_score: number | null;
-  news_headlines: string[] | null;  // list of headline strings from news_utils
+  news_headlines: string[] | null;
   recommendation: "GOOD_NEWS" | "WARNING" | "RED_FLAG" | "NEUTRAL" | null;
   recommendation_reasons: string[] | null;
   updated_at: string | null;
