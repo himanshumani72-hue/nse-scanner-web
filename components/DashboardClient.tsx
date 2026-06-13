@@ -231,7 +231,6 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "movers",   label: "Big Movers",      icon: ICONS.Bolt,  count: movers.length || null },
     { id: "twitter",  label: "Buzz Spike",      icon: ICONS.Rocket,count: twitter.length || null },
     { id: "sectors",  label: "Sector Rotation", icon: ICONS.Globe, count: sectors.length || null },
-    { id: "portfolio",label: "📊 My Portfolio",  icon: ICONS.Trophy,count: null },
   ];
 
   // ── Chart Patterns dropdown ─────────────────────
@@ -458,6 +457,21 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {(broker.length ?? 0) > 0 && (
             <span style={{ fontSize: 10.5, padding: "1px 6px", borderRadius: 999, background: "var(--bg-3)", color: "var(--ink-3)", border: "1px solid var(--line)" }}>{broker.length}</span>
           )}
+        </button>
+
+        {/* My Portfolio */}
+        <button onClick={() => setTab("portfolio")}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "16px 14px 14px",
+            background: "transparent", border: "none",
+            borderBottom: `2px solid ${tab === "portfolio" ? "var(--accent)" : "transparent"}`,
+            color: tab === "portfolio" ? "var(--accent)" : "var(--ink-0)",
+            fontSize: 16, fontWeight: 600,
+            fontFamily: "inherit", cursor: "pointer", marginBottom: -1,
+            whiteSpace: "nowrap",
+          }}>
+          📊 My Portfolio
         </button>
 
         <div style={{ flex: 1 }} />
