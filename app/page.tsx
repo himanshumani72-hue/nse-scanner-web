@@ -126,10 +126,10 @@ const INDICES = [
 
 /* ─────────────────── STOCK PICK CARDS ──────────────────── */
 const PICKS = [
-  { sym:"RELIANCE",   action:"BUY",  price:"₹2,847.5",  chg:"+1.23%", sector:"Energy",  tags:["Cup & Handle","Bulk Deals"],     up:true  },
-  { sym:"HDFCBANK",   action:"BUY",  price:"₹1,678.9",  chg:"+0.91%", sector:"Banking", tags:["52W Breakout","Broker Upgrades"], up:true  },
-  { sym:"TATAMOTORS", action:"BUY",  price:"₹1,023.8",  chg:"+2.18%", sector:"Auto",    tags:["W-Pattern 15M","Buzz Spike"],     up:true  },
-  { sym:"WIPRO",      action:"SELL", price:"₹456.75",   chg:"-0.67%", sector:"IT",      tags:["Stocks to Short","RSI Exhaust"],  up:false },
+  { sym:"RELIANCE",   action:"BULLISH SETUP", price:"₹2,847.5",  chg:"+1.23%", sector:"Energy",  tags:["Cup & Handle","Bulk Deals"],     up:true  },
+  { sym:"HDFCBANK",   action:"BULLISH SETUP", price:"₹1,678.9",  chg:"+0.91%", sector:"Banking", tags:["52W Breakout","Broker Upgrades"], up:true  },
+  { sym:"TATAMOTORS", action:"BULLISH SETUP", price:"₹1,023.8",  chg:"+2.18%", sector:"Auto",    tags:["W-Pattern 15M","Buzz Spike"],     up:true  },
+  { sym:"WIPRO",      action:"BEARISH SETUP", price:"₹456.75",   chg:"-0.67%", sector:"IT",      tags:["Stocks to Short","RSI Exhaust"],  up:false },
 ];
 
 /* ─────────────────── FEATURES ──────────────────────────── */
@@ -374,9 +374,9 @@ export default function Landing() {
                   <span style={{ fontSize:16, fontWeight:800, color:C.navy, letterSpacing:"-0.01em" }}>{p.sym}</span>
                   <span style={{
                     fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:999,
-                    background: p.action==="BUY" ? C.greenBg : C.redBg,
-                    color: p.action==="BUY" ? C.green : C.red,
-                    border:`1px solid ${p.action==="BUY" ? C.green+"30" : C.red+"30"}`,
+                    background: p.up ? C.greenBg : C.redBg,
+                    color: p.up ? C.green : C.red,
+                    border:`1px solid ${p.up ? C.green+"30" : C.red+"30"}`,
                   }}>{p.action}</span>
                 </div>
                 <div style={{ fontSize:22, fontWeight:800, color:C.navy, letterSpacing:"-0.02em" }}>{p.price}</div>

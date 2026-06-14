@@ -534,10 +534,12 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
       </div>
 
       {/* ── Footer ── */}
-      <footer style={{ padding: "12px 28px", borderTop: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 18, fontSize: 11, color: "var(--ink-3)", background: "var(--bg-1)" }}>
+      <footer style={{ padding: "12px 28px", borderTop: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 18, fontSize: 11, color: "var(--ink-3)", background: "var(--bg-1)", flexWrap: "wrap" }}>
         <span>© 2026 NSE Scanner Pro</span>
         <span style={{ width: 3, height: 3, borderRadius: "50%", background: "var(--ink-4)", display: "inline-block" }}/>
         <span>Data: NSE · 15min delayed for Free tier</span>
+        <span style={{ width: 3, height: 3, borderRadius: "50%", background: "var(--ink-4)", display: "inline-block" }}/>
+        <span>Not SEBI-registered investment advice — informational/educational only</span>
         <div style={{ flex: 1 }}/>
         <span className="num">v1.0.0</span>
       </footer>

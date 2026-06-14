@@ -34,6 +34,18 @@ function RecBadge({ rec, reasons }: { rec: string | null; reasons: string[] | nu
   );
 }
 
+// ── Relative time formatting ─────────────────────────────────────────────
+function timeAgo(iso: string | null): string {
+  if (!iso) return "—";
+  const diffSec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diffSec < 0) return "just now";
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  return `${diffHr}h ago`;
+}
+
 // ── RSI color scale ───────────────────────────────────────────────────────
 function rsiColor(rsi: number | null): string {
   if (rsi === null) return "var(--ink-3)";
@@ -195,11 +207,19 @@ export default function PortfolioView() {
     );
   }
 
+  // Most recent indicator refresh across all holdings
+  const latestUpdate = holdings.reduce<string | null>((latest, h) => {
+    const u = h.indicator?.updated_at ?? null;
+    if (!u) return latest;
+    if (!latest || new Date(u) > new Date(latest)) return u;
+    return latest;
+  }, null);
+
   return (
     <div style={{ padding: "4px 0" }}>
       {/* ── Filter + Add button bar ─────────────────────────────────── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {(["ALL", "RISING", "FALLING"] as FilterMode[]).map(f => (
             <button
               key={f}
@@ -215,6 +235,9 @@ export default function PortfolioView() {
               {f === "ALL" ? ` (${holdings.length})` : f === "RISING" ? ` (${holdings.filter(h => h.pnl_pct > 0).length})` : ` (${holdings.filter(h => h.pnl_pct < 0).length})`}
             </button>
           ))}
+          <span style={{ fontSize: 11, color: "var(--ink-4)", marginLeft: 6 }} title={latestUpdate ? new Date(latestUpdate).toLocaleString("en-IN") : ""}>
+            🔄 Data updated {timeAgo(latestUpdate)}
+          </span>
         </div>
 
         <button
