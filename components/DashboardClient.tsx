@@ -23,6 +23,7 @@ import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
 import ScannerHealthRail from "./ScannerHealthRail";
 import PortfolioView from "./PortfolioView";
+import TrackRecordView from "./TrackRecordView";
 import PortfolioSummary from "./PortfolioSummary";
 import Link from "next/link";
 import { Sun, Moon, CreditCard, Sparkles, ChevronDown } from "lucide-react";
@@ -56,7 +57,7 @@ interface Props {
   promoEnabled?:   boolean;  // is the launch offer currently active site-wide?
 }
 
-type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "bbsqueeze" | "flatup" | "flatdown" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "breakout1d" | "bulkdeals" | "sectors" | "broker" | "ranking" | "portfolio";
+type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "bbsqueeze" | "flatup" | "flatdown" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "breakout1d" | "bulkdeals" | "sectors" | "broker" | "ranking" | "portfolio" | "trackrecord";
 
 /* ── Nav dropdown for dashboard ─────────────────────── */
 function DashDropdown({
@@ -474,6 +475,21 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           📊 My Portfolio
         </button>
 
+        {/* Track Record */}
+        <button onClick={() => setTab("trackrecord")}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "16px 14px 14px",
+            background: "transparent", border: "none",
+            borderBottom: `2px solid ${tab === "trackrecord" ? "var(--accent)" : "transparent"}`,
+            color: tab === "trackrecord" ? "var(--accent)" : "var(--ink-0)",
+            fontSize: 16, fontWeight: 600,
+            fontFamily: "inherit", cursor: "pointer", marginBottom: -1,
+            whiteSpace: "nowrap",
+          }}>
+          📈 Track Record
+        </button>
+
         <div style={{ flex: 1 }} />
 
         {isLive && (
@@ -505,6 +521,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "falling"    && <AboutToFallView  boomerangAlerts={boomerang} panelsData={panelsData} />}
           {tab === "ranking"    && <RankingTable     panelsData={panelsData} />}
           {tab === "portfolio" && <PortfolioTab />}
+          {tab === "trackrecord" && <TrackRecordView />}
           {tab === "nextday"    && <NextDayView      panelsData={panelsData} />}
           {tab === "multibagger"&& <ComingSoonView   title="Multibagger Picks" emoji="💎" desc="Long-term high-conviction setups. Criteria coming soon." />}
         </main>
