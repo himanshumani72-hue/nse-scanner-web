@@ -46,6 +46,31 @@ function timeAgo(iso: string | null): string {
   return `${diffHr}h ago`;
 }
 
+// ── Composite conviction score badge ────────────────────────────────────
+function ScoreBadge({ score, label }: { score: number | null; label: string | null }) {
+  if (score === null || score === undefined) return <span style={{ color: "var(--ink-3)", fontSize: 12 }}>—</span>;
+  let color = "var(--ink-3)";
+  if (score >= 70) color = "#22c55e";
+  else if (score >= 55) color = "#84cc16";
+  else if (score > 45) color = "var(--ink-3)";
+  else if (score > 30) color = "#f59e0b";
+  else color = "#ef4444";
+  return (
+    <span
+      title={label || ""}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        fontWeight: 700, fontSize: 12, color,
+        padding: "2px 8px", borderRadius: 6, background: `${color}15`,
+        cursor: "help",
+      }}
+    >
+      {score}
+      <span style={{ fontSize: 10, fontWeight: 600, color: "var(--ink-3)" }}>{label}</span>
+    </span>
+  );
+}
+
 // ── RSI color scale ───────────────────────────────────────────────────────
 function rsiColor(rsi: number | null): string {
   if (rsi === null) return "var(--ink-3)";
@@ -138,6 +163,7 @@ export default function PortfolioView() {
       case "ltp":       va = a.indicator?.ltp ?? 0; vb = b.indicator?.ltp ?? 0; break;
       case "change_pct":va = a.indicator?.change_pct ?? 0; vb = b.indicator?.change_pct ?? 0; break;
       case "rsi":       va = a.indicator?.rsi_14 ?? 0; vb = b.indicator?.rsi_14 ?? 0; break;
+      case "composite_score": va = a.indicator?.composite_score ?? 0; vb = b.indicator?.composite_score ?? 0; break;
       case "volume":    va = a.indicator?.volume ?? 0; vb = b.indicator?.volume ?? 0; break;
       case "pnl_pct":   va = a.pnl_pct; vb = b.pnl_pct; break;
       case "pnl":       va = a.pnl; vb = b.pnl; break;
@@ -272,6 +298,7 @@ export default function PortfolioView() {
                 ["EMA21", null],
                 ["EMA51", null],
                 ["News", null],
+                ["Score", "composite_score"],
                 ["Rec", null],
                 ["Buy Date", null],
                 ["Scans", null],
@@ -407,6 +434,9 @@ export default function PortfolioView() {
                         {ind.news_headlines[0] || ""}
                       </div>
                     )}
+                  </td>
+                  <td style={{ padding: "10px 12px" }}>
+                    <ScoreBadge score={ind?.composite_score ?? null} label={ind?.composite_label ?? null} />
                   </td>
                   <td style={{ padding: "10px 12px" }}>
                     <RecBadge rec={ind?.recommendation ?? null} reasons={ind?.recommendation_reasons ?? null} />

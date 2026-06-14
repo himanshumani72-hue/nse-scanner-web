@@ -63,6 +63,8 @@ export interface PortfolioIndicator {
   news_headlines: string[] | null;
   recommendation: "GOOD_NEWS" | "WARNING" | "RED_FLAG" | "NEUTRAL" | null;
   recommendation_reasons: string[] | null;
+  composite_score: number | null;
+  composite_label: string | null;
   updated_at: string | null;
 }
 
