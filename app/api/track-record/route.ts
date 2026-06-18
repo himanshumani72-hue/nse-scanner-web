@@ -25,17 +25,23 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data, error } = await supabase
-      .from("scan_signals")
-      .select("scan_type, return_1d, return_3d, return_7d, return_30d, scanned_at")
-      .order("scanned_at", { ascending: false })
-      .limit(10000);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    // Supabase caps a single query at 1000 rows — paginate to get all signals.
+    const PAGE_SIZE = 1000;
+    const allRows: ScanSignalRow[] = [];
+    let page = 0;
+    while (true) {
+      const { data, error } = await supabase
+        .from("scan_signals")
+        .select("scan_type, return_1d, return_3d, return_7d, return_30d, scanned_at")
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (!data || data.length === 0) break;
+      allRows.push(...(data as ScanSignalRow[]));
+      if (data.length < PAGE_SIZE) break;
+      page++;
     }
 
-    const rows = (data || []) as ScanSignalRow[];
+    const rows = allRows;
 
     type Agg = {
       scan_type: string;
