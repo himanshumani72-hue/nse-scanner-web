@@ -174,6 +174,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [clock,       setClock]      = useState("");
   // 0=Sun, 1=Mon, … 6=Sat (in IST, not browser-local)
   const [istWeekday,  setIstWeekday] = useState<number>(-1);
+  const [liveLtp,     setLiveLtp]    = useState<Map<string, { ltp: number; changePct: number | null }>>(new Map());
   const supabase = createClient();
   const { theme, toggle } = useTheme();
 
@@ -215,6 +216,42 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
+
+  // Live LTP overlay: poll live_ltp_cache (populated by upstox_ws_full.py)
+  // every 5s for just the symbols currently on screen, and merge into
+  // each alert's data.LTP at render time via mergeLive() below — so
+  // every scanner/chart-pattern view shows a live price instead of the
+  // stale price captured when that scan last ran, with zero per-view
+  // changes needed.
+  useEffect(() => {
+    const allAlerts = [movers, patterns, wPats, momentum, boomerang, turnaround, bulkDeals,
+                        breakout, breakout1d, broker, twitter, bbSqueeze, flatUp, flatDown];
+    const symbols = Array.from(new Set(allAlerts.flat().map(a => a.symbol))).filter(Boolean);
+    if (symbols.length === 0) return;
+
+    let cancelled = false;
+    const poll = async () => {
+      const { data, error } = await supabase
+        .from("live_ltp_cache")
+        .select("symbol, ltp, change_pct")
+        .in("symbol", symbols);
+      if (cancelled || error || !data) return;
+      setLiveLtp(new Map(data.map(r => [r.symbol, { ltp: Number(r.ltp), changePct: r.change_pct === null ? null : Number(r.change_pct) }])));
+    };
+    poll();
+    const id = setInterval(poll, 5000);
+    return () => { cancelled = true; clearInterval(id); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [movers, patterns, wPats, momentum, boomerang, turnaround, bulkDeals, breakout, breakout1d, broker, twitter, bbSqueeze, flatUp, flatDown]);
+
+  function mergeLive(alerts: Alert[]): Alert[] {
+    if (liveLtp.size === 0) return alerts;
+    return alerts.map(a => {
+      const live = liveLtp.get(a.symbol);
+      if (!live) return a;
+      return { ...a, data: { ...a.data, LTP: live.ltp, _liveLtp: true } };
+    });
+  }
 
   const fmtTime = (iso: string | null) => {
     if (!iso) return "—";
@@ -504,21 +541,21 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
       <div style={{ display: "flex", flex: 1 }}>
         <main style={{ flex: 1, padding: "24px 28px", minWidth: 0 }}>
           {tab === "overview"  && <MarketOverview    data={marketData} panelsData={panelsData} hideRanking />}
-          {tab === "movers"    && <BigMoversView    alerts={movers} />}
-          {tab === "patterns"  && <CupHandleView    alerts={patterns} />}
-          {tab === "wpattern"   && <WPatternView     alerts={wPats} />}
-          {tab === "momentum"   && <MomentumView     alerts={momentum} />}
-          {tab === "turnaround" && <TurnaroundView   alerts={turnaround} />}
-          {tab === "bulkdeals"  && <BulkDealsView    alerts={bulkDeals} />}
-          {tab === "breakout"   && <BreakoutView     alerts={breakout} />}
-          {tab === "breakout1d" && <Breakout1DView  alerts={breakout1d} />}
+          {tab === "movers"    && <BigMoversView    alerts={mergeLive(movers)} />}
+          {tab === "patterns"  && <CupHandleView    alerts={mergeLive(patterns)} />}
+          {tab === "wpattern"   && <WPatternView     alerts={mergeLive(wPats)} />}
+          {tab === "momentum"   && <MomentumView     alerts={mergeLive(momentum)} />}
+          {tab === "turnaround" && <TurnaroundView   alerts={mergeLive(turnaround)} />}
+          {tab === "bulkdeals"  && <BulkDealsView    alerts={mergeLive(bulkDeals)} />}
+          {tab === "breakout"   && <BreakoutView     alerts={mergeLive(breakout)} />}
+          {tab === "breakout1d" && <Breakout1DView  alerts={mergeLive(breakout1d)} />}
           {tab === "sectors"    && <SectorRotationView alerts={sectors} />}
-          {tab === "broker"     && <BrokerageView    alerts={broker} />}
-          {tab === "twitter"    && <TwitterSpikeView alerts={twitter} />}
-          {tab === "bbsqueeze"  && <BBSqueezeView    alerts={bbSqueeze} />}
-          {tab === "flatup"     && <FlatBaseView     alerts={flatUp}   direction="up"   />}
-          {tab === "flatdown"   && <FlatBaseView     alerts={flatDown} direction="down" />}
-          {tab === "falling"    && <AboutToFallView  boomerangAlerts={boomerang} panelsData={panelsData} />}
+          {tab === "broker"     && <BrokerageView    alerts={mergeLive(broker)} />}
+          {tab === "twitter"    && <TwitterSpikeView alerts={mergeLive(twitter)} />}
+          {tab === "bbsqueeze"  && <BBSqueezeView    alerts={mergeLive(bbSqueeze)} />}
+          {tab === "flatup"     && <FlatBaseView     alerts={mergeLive(flatUp)}   direction="up"   />}
+          {tab === "flatdown"   && <FlatBaseView     alerts={mergeLive(flatDown)} direction="down" />}
+          {tab === "falling"    && <AboutToFallView  boomerangAlerts={mergeLive(boomerang)} panelsData={panelsData} />}
           {tab === "ranking"    && <RankingTable     panelsData={panelsData} />}
           {tab === "portfolio" && <PortfolioTab />}
           {tab === "trackrecord" && <TrackRecordView />}
