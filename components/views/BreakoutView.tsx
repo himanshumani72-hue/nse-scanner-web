@@ -52,7 +52,7 @@ export default function BreakoutView({ alerts }: { alerts: Alert[] }) {
       {low.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SectionHdr icon="🔵" title="LOW Conviction" count={low.length}
-            hint="Marginal breakout — wait for confirmation" />
+            hint="Reason varies per stock — see note under each symbol below" />
           <BreakoutTable alerts={low} tone="info" />
         </div>
       )}
@@ -114,10 +114,17 @@ function BreakoutTable({ alerts, tone }: { alerts: Alert[]; tone: "up" | "warn" 
             borderBottom: i < alerts.length - 1 ? "1px solid var(--line)" : "none",
             background: isEven ? accentBg : "transparent",
           }}>
-            <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
-              style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 700, fontSize: 13, fontFamily: "var(--mono)" }}>
-              {a.symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
-            </a>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+              <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
+                style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 700, fontSize: 13, fontFamily: "var(--mono)" }}>
+                {a.symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
+              </a>
+              {d["Conviction Reason"] && (
+                <span style={{ fontSize: 10, color: "var(--ink-3)", lineHeight: 1.3, whiteSpace: "normal" }}>
+                  {String(d["Conviction Reason"])}
+                </span>
+              )}
+            </div>
             <span className="num" style={{ textAlign: "right", fontSize: 12, color: "var(--ink-0)" }}>₹{d["LTP"]}</span>
             <span className="num" style={{ textAlign: "right", fontSize: 11, color: "var(--ink-3)" }}>₹{d["Prior 52W High"]}</span>
             <span className="num" style={{ textAlign: "right", fontSize: 12, fontWeight: 700, color: accent }}>+{breakout.toFixed(1)}%</span>
