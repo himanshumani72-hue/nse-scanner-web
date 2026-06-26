@@ -352,8 +352,9 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
               const h = parseInt(parts[0]), m = parseInt(parts[1]);
               const t = h * 60 + m;
               const isWeekend = istWeekday === 0 || istWeekday === 6;   // Sun=0, Sat=6
+              const isHoliday = Boolean(marketData?.is_market_holiday_today);
               const inMarketHours = t >= 9*60+15 && t <= 15*60+30;
-              const isOpen   = !isWeekend && inMarketHours;
+              const isOpen   = !isWeekend && !isHoliday && inMarketHours;
               const dotColor = isLive ? "var(--up)" : isOpen ? "var(--up)" : "var(--ink-3)";
               const label    = isLive
                 ? "Live update!"
@@ -361,7 +362,9 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
                   ? "Market open"
                   : isWeekend
                     ? "Markets closed · weekend"
-                    : "Markets closed";
+                    : isHoliday
+                      ? "Markets closed · holiday"
+                      : "Markets closed";
               return (<><PulseDot color={dotColor} /><span style={{ fontSize: 12, color: isOpen ? "var(--up)" : "var(--ink-1)" }}>{label}</span></>);
             }
             return <><PulseDot color="var(--accent)"/><span style={{ fontSize: 12, color: "var(--ink-1)" }}>Loading…</span></>;
