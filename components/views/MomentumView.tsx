@@ -2,6 +2,7 @@
 import type { Alert } from "@/lib/types";
 import { SectionHdr, Empty, Pct } from "./BigMoversView";
 import { ExternalLink } from "lucide-react";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 
 function tv(symbol: string) {
   return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
@@ -88,10 +89,12 @@ export default function MomentumView({ alerts }: { alerts: Alert[] }) {
                 }}>
                   {a.symbol.slice(0, 2)}
                 </div>
-                <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
-                  style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 600, fontSize: 13, fontFamily: "var(--mono)" }}>
-                  {a.symbol} <ExternalLink size={10} style={{ color: "var(--ink-4)" }} />
-                </a>
+                <CandleHoverCard symbol={a.symbol}>
+                  <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
+                    style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 600, fontSize: 13, fontFamily: "var(--mono)" }}>
+                    {a.symbol} <ExternalLink size={10} style={{ color: "var(--ink-4)" }} />
+                  </a>
+                </CandleHoverCard>
               </div>
 
               <span className="num" style={{ textAlign: "right", fontSize: 12.5, color: "var(--ink-0)" }}>

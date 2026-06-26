@@ -2,6 +2,7 @@
 import type { Alert } from "@/lib/types";
 import { SectionHdr, Empty } from "./BigMoversView";
 import { ExternalLink } from "lucide-react";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 
 function tv(symbol: string) {
   return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
@@ -115,10 +116,12 @@ function BreakoutTable({ alerts, tone }: { alerts: Alert[]; tone: "up" | "warn" 
             background: isEven ? accentBg : "transparent",
           }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
-              <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
-                style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 700, fontSize: 13, fontFamily: "var(--mono)" }}>
-                {a.symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
-              </a>
+              <CandleHoverCard symbol={a.symbol}>
+                <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
+                  style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 700, fontSize: 13, fontFamily: "var(--mono)" }}>
+                  {a.symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
+                </a>
+              </CandleHoverCard>
               {d["Conviction Reason"] && (
                 <span style={{ fontSize: 10, color: "var(--ink-3)", lineHeight: 1.3, whiteSpace: "normal" }}>
                   {String(d["Conviction Reason"])}

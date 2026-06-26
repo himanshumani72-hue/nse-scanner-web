@@ -2,6 +2,7 @@
 import type { Alert } from "@/lib/types";
 import { SectionHdr, Empty } from "./BigMoversView";
 import { ExternalLink } from "lucide-react";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 
 function tv(symbol: string) {
   return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
@@ -89,10 +90,12 @@ export default function AboutToFallView({
                     }}>
                       {a.symbol.slice(0, 2)}
                     </div>
-                    <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
-                      style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--down)", textDecoration: "none", fontWeight: 700, fontSize: 13, fontFamily: "var(--mono)" }}>
-                      {a.symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
-                    </a>
+                    <CandleHoverCard symbol={a.symbol}>
+                      <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
+                        style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--down)", textDecoration: "none", fontWeight: 700, fontSize: 13, fontFamily: "var(--mono)" }}>
+                        {a.symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
+                      </a>
+                    </CandleHoverCard>
                   </div>
 
                   <span className="num" style={{ textAlign: "right", fontSize: 12, color: "var(--ink-0)" }}>₹{d["LTP"]}</span>
@@ -166,10 +169,12 @@ export default function AboutToFallView({
                   onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,93,108,.08)")}
                   onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "rgba(255,93,108,.04)" : "transparent")}>
 
+                  <CandleHoverCard symbol={f.Symbol}>
                   <a href={tv(f.Symbol)} target="_blank" rel="noreferrer"
                     style={{ fontWeight: 700, color: "var(--down)", textDecoration: "none", fontFamily: "var(--mono)", fontSize: 13, display: "flex", alignItems: "center", gap: 4 }}>
                     {f.Symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
                   </a>
+                  </CandleHoverCard>
                   <span className="num" style={{ textAlign: "right", fontSize: 12, color: "var(--ink-0)" }}>₹{f.Close}</span>
                   <span className="num" style={{
                     textAlign: "right", fontWeight: 700, fontSize: 13,

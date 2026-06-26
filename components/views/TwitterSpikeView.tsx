@@ -1,6 +1,7 @@
 "use client";
 import type { Alert } from "@/lib/types";
 import { ExternalLink, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 
 function tv(symbol: string) {
   return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
@@ -74,10 +75,12 @@ export default function TwitterSpikeView({ alerts }: { alerts: Alert[] }) {
               borderBottom: i < alerts.length - 1 ? "1px solid var(--line)" : "none",
               background: i % 2 === 0 ? "transparent" : "var(--bg-2)",
             }}>
-              <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
-                style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 700, fontSize: 13, fontFamily: "var(--mono)" }}>
-                {a.symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
-              </a>
+              <CandleHoverCard symbol={a.symbol}>
+                <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
+                  style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 700, fontSize: 13, fontFamily: "var(--mono)" }}>
+                  {a.symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
+                </a>
+              </CandleHoverCard>
               <span className="num" style={{ textAlign: "right", fontSize: 13, fontWeight: 700, color: multColor }}>
                 {mult.toFixed(1)}×
               </span>

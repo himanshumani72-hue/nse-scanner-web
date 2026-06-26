@@ -1,5 +1,6 @@
 "use client";
 import { ExternalLink } from "lucide-react";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 const tv = (sym: string) => `https://in.tradingview.com/chart/?symbol=NSE:${sym}`;
 
 export default function FlatBaseView({ alerts, direction }: { alerts: any[]; direction: "up" | "down" }) {
@@ -68,10 +69,12 @@ export default function FlatBaseView({ alerts, direction }: { alerts: any[]; dir
               background: i % 2 === 0 ? "var(--bg-2)" : "transparent",
               fontSize: 13,
             }}>
-              <a href={tv(sym)} target="_blank" rel="noreferrer"
-                style={{ display: "flex", alignItems: "center", gap: 4, fontWeight: 700, color: "var(--ink-0)", textDecoration: "none" }}>
-                {sym} <ExternalLink size={11} style={{ opacity: 0.5 }} />
-              </a>
+              <CandleHoverCard symbol={sym}>
+                <a href={tv(sym)} target="_blank" rel="noreferrer"
+                  style={{ display: "flex", alignItems: "center", gap: 4, fontWeight: 700, color: "var(--ink-0)", textDecoration: "none" }}>
+                  {sym} <ExternalLink size={11} style={{ opacity: 0.5 }} />
+                </a>
+              </CandleHoverCard>
               <span style={{ textAlign: "right", fontWeight: 600, color: "var(--ink-0)" }}>₹{ltp}</span>
               <span style={{ textAlign: "right", fontWeight: 600, color: chg >= 0 ? "var(--up)" : "var(--down)" }}>
                 {chg > 0 ? "+" : ""}{chg}%

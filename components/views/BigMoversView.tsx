@@ -3,6 +3,7 @@ import type { Alert } from "@/lib/types";
 import Sparkline, { makeSparkline, seedFromSymbol } from "@/components/ui/Sparkline";
 import ConfBar from "@/components/ui/ConfBar";
 import Tag from "@/components/ui/Tag";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 
 function MoverCard({ a, prime }: { a: Alert; prime?: boolean }) {
   const d = a.data;
@@ -186,15 +187,17 @@ export default function BigMoversView({ alerts }: { alerts: Alert[] }) {
 // ── Shared helpers ────────────────────────────────────────────
 export function SymCell({ sym, name }: { sym: string; name?: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <div style={{ width: 30, height: 30, borderRadius: 7, flexShrink: 0, background: "linear-gradient(135deg, #1a2332 0%, #0f1622 100%)", border: "1px solid var(--line)", display: "grid", placeItems: "center", fontSize: 10, fontWeight: 600, color: "var(--ink-1)", letterSpacing: "0.02em", fontFamily: "var(--mono)" }}>
-        {sym.slice(0, 2)}
+    <CandleHoverCard symbol={sym}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ width: 30, height: 30, borderRadius: 7, flexShrink: 0, background: "linear-gradient(135deg, #1a2332 0%, #0f1622 100%)", border: "1px solid var(--line)", display: "grid", placeItems: "center", fontSize: 10, fontWeight: 600, color: "var(--ink-1)", letterSpacing: "0.02em", fontFamily: "var(--mono)" }}>
+          {sym.slice(0, 2)}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div className="num" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-0)", letterSpacing: "-0.01em" }}>{sym}</div>
+          {name && <div style={{ fontSize: 11, color: "var(--ink-3)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 160 }}>{name}</div>}
+        </div>
       </div>
-      <div style={{ minWidth: 0 }}>
-        <div className="num" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-0)", letterSpacing: "-0.01em" }}>{sym}</div>
-        {name && <div style={{ fontSize: 11, color: "var(--ink-3)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 160 }}>{name}</div>}
-      </div>
-    </div>
+    </CandleHoverCard>
   );
 }
 

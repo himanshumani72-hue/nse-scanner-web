@@ -2,6 +2,7 @@
 import type { Alert } from "@/lib/types";
 import { SectionHdr, Empty } from "./BigMoversView";
 import { ExternalLink } from "lucide-react";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 
 function tv(symbol: string) {
   return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
@@ -147,10 +148,12 @@ function StockCard({ a }: { a: Alert }) {
             {a.symbol.slice(0, 2)}
           </div>
           <div>
-            <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
-              style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 700, fontSize: 14, fontFamily: "var(--mono)" }}>
-              {a.symbol} <ExternalLink size={10} style={{ color: "var(--ink-4)" }} />
-            </a>
+            <CandleHoverCard symbol={a.symbol}>
+              <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
+                style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 700, fontSize: 14, fontFamily: "var(--mono)" }}>
+                {a.symbol} <ExternalLink size={10} style={{ color: "var(--ink-4)" }} />
+              </a>
+            </CandleHoverCard>
             <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 999, background: sBg, color: sColor, border: `1px solid ${sColor}40`, fontWeight: 600 }}>
               {sector === "AI/Tech" ? "🤖" : sector === "Energy" ? "⚡" : sector === "Oil & Gas" ? "🛢️" : sector === "High Growth" ? "🚀" : ""} {sector}
             </span>

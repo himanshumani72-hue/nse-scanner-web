@@ -2,6 +2,7 @@
 import type { Alert } from "@/lib/types";
 import { SectionHdr, Empty } from "./BigMoversView";
 import { ExternalLink } from "lucide-react";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 
 function tv(symbol: string) {
   return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
@@ -101,10 +102,12 @@ function DealsTable({ alerts, signal }: { alerts: Alert[]; signal: "BUY" | "SELL
             borderBottom: i < alerts.length - 1 ? "1px solid var(--line)" : "none",
             background: isEven ? accentBg : "transparent",
           }}>
-            <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
-              style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 700, fontSize: 13, fontFamily: "var(--mono)" }}>
-              {a.symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
-            </a>
+            <CandleHoverCard symbol={a.symbol}>
+              <a href={tv(a.symbol)} target="_blank" rel="noreferrer"
+                style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--ink-0)", textDecoration: "none", fontWeight: 700, fontSize: 13, fontFamily: "var(--mono)" }}>
+                {a.symbol} <ExternalLink size={10} style={{ opacity: 0.5 }} />
+              </a>
+            </CandleHoverCard>
             <span style={{ textAlign: "right" }}>
               <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999, color: strengthColor, border: `1px solid ${strengthColor}40`, background: `${strengthColor}15` }}>
                 {strength}

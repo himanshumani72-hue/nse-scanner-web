@@ -1,5 +1,6 @@
 "use client";
 import { ExternalLink } from "lucide-react";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 const tv = (sym: string) => `https://in.tradingview.com/chart/?symbol=NSE:${sym}`;
 
 export default function PhoenixView({ alerts }: { alerts: any[] }) {
@@ -42,12 +43,14 @@ export default function PhoenixView({ alerts }: { alerts: any[] }) {
             borderLeft: `3px solid ${todayChg > 2 ? "var(--up)" : "var(--accent-2)"}`,
           }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <a href={tv(sym)} target="_blank" rel="noreferrer" style={{
-                fontWeight: 700, fontSize: 16, color: "var(--ink-0)",
-                textDecoration: "none", display: "flex", alignItems: "center", gap: 6
-              }}>
-                {sym} <ExternalLink size={12} style={{ opacity: 0.5 }} />
-              </a>
+              <CandleHoverCard symbol={sym}>
+                <a href={tv(sym)} target="_blank" rel="noreferrer" style={{
+                  fontWeight: 700, fontSize: 16, color: "var(--ink-0)",
+                  textDecoration: "none", display: "flex", alignItems: "center", gap: 6
+                }}>
+                  {sym} <ExternalLink size={12} style={{ opacity: 0.5 }} />
+                </a>
+              </CandleHoverCard>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{
                   fontSize: 13, fontWeight: 700,
