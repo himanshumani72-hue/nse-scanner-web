@@ -19,6 +19,7 @@ import BrokerageView from "./views/BrokerageView";
 import TwitterSpikeView from "./views/TwitterSpikeView";
 import BBSqueezeView from "./views/BBSqueezeView";
 import FlatBaseView from "./views/FlatBaseView";
+import MultibaggerView from "./views/MultibaggerView";
 import Breakout1DView from "./views/Breakout1DView";
 import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
@@ -49,6 +50,7 @@ interface Props {
   bbSqueezeAlerts?:  Alert[];
   flatUpAlerts?:     Alert[];
   flatDownAlerts?:   Alert[];
+  multibaggerAlerts?: Alert[];
   marketData?:     any;
   panelsData?:     any;
   healthData?:     any;
@@ -153,7 +155,7 @@ const ICONS = {
   W:       () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 3 L3.5 9 L5 5 L7 9 L9 5 L10.5 9" strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], breakout1dAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], bbSqueezeAlerts = [], flatUpAlerts = [], flatDownAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], breakout1dAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], bbSqueezeAlerts = [], flatUpAlerts = [], flatDownAlerts = [], multibaggerAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
   const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
@@ -170,6 +172,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [bbSqueeze,   setBBSqueeze]  = useState<Alert[]>(bbSqueezeAlerts);
   const [flatUp,      setFlatUp]     = useState<Alert[]>(flatUpAlerts);
   const [flatDown,    setFlatDown]   = useState<Alert[]>(flatDownAlerts);
+  const [multibagger, setMultibagger]= useState<Alert[]>(multibaggerAlerts);
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
   const [clock,       setClock]      = useState("");
@@ -214,6 +217,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         if (a.scan_type === "BB_SQUEEZE")        setBBSqueeze(prev  => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "FLAT_BASE_UP")      setFlatUp(prev     => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "FLAT_BASE_DOWN")    setFlatDown(prev   => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "MULTIBAGGER")       setMultibagger(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
@@ -226,7 +230,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   // changes needed.
   useEffect(() => {
     const allAlerts = [movers, patterns, wPats, momentum, boomerang, turnaround, bulkDeals,
-                        breakout, breakout1d, broker, twitter, bbSqueeze, flatUp, flatDown];
+                        breakout, breakout1d, broker, twitter, bbSqueeze, flatUp, flatDown, multibagger];
     const symbols = Array.from(new Set(allAlerts.flat().map(a => a.symbol))).filter(Boolean);
     if (symbols.length === 0) return;
 
@@ -243,7 +247,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     const id = setInterval(poll, 5000);
     return () => { cancelled = true; clearInterval(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [movers, patterns, wPats, momentum, boomerang, turnaround, bulkDeals, breakout, breakout1d, broker, twitter, bbSqueeze, flatUp, flatDown]);
+  }, [movers, patterns, wPats, momentum, boomerang, turnaround, bulkDeals, breakout, breakout1d, broker, twitter, bbSqueeze, flatUp, flatDown, multibagger]);
 
   function mergeLive(alerts: Alert[]): Alert[] {
     if (liveLtp.size === 0) return alerts;
@@ -561,7 +565,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "portfolio" && <PortfolioTab />}
           {tab === "trackrecord" && <TrackRecordView />}
           {tab === "nextday"    && <NextDayView      panelsData={panelsData} />}
-          {tab === "multibagger"&& <ComingSoonView   title="Multibagger Picks" emoji="💎" desc="Long-term high-conviction setups. Criteria coming soon." />}
+          {tab === "multibagger"&& <MultibaggerView  alerts={mergeLive(multibagger)} />}
         </main>
 
         {/* ── Scanner Health Rail ── */}

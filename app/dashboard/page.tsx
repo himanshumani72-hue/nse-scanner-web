@@ -51,6 +51,7 @@ export default async function DashboardPage() {
   const bbSqueeze    = alerts?.filter(a => a.scan_type === "BB_SQUEEZE")            ?? [];
   const flatUp       = alerts?.filter(a => a.scan_type === "FLAT_BASE_UP")          ?? [];
   const flatDown     = alerts?.filter(a => a.scan_type === "FLAT_BASE_DOWN")        ?? [];
+  const multibagger  = alerts?.filter(a => a.scan_type === "MULTIBAGGER")          ?? [];
   const alertsLast   = alerts?.[0]?.scanned_at ?? null;
 
   // Fetch market overview data
@@ -129,6 +130,7 @@ export default async function DashboardPage() {
       bbSqueezeAlerts={bbSqueeze}
       flatUpAlerts={flatUp}
       flatDownAlerts={flatDown}
+      multibaggerAlerts={multibagger}
       marketData={marketData}
       panelsData={panelsData}
       healthData={healthData}
