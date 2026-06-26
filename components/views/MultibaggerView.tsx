@@ -11,7 +11,6 @@ function tv(symbol: string) {
 const TIMING_COLOR: Record<string, string> = {
   "Starting Momentum": "var(--up)",
   "Trending, Room Left": "var(--accent-2)",
-  "Range-Bound / Below Trend": "var(--ink-3)",
   "Already Extended": "var(--warn)",
 };
 
