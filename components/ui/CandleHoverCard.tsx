@@ -1,7 +1,9 @@
 "use client";
-import { useState, useRef, ReactNode } from "react";
+import { useState, useRef, useEffect, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import MiniCandlestick, { RawCandle } from "./MiniCandlestick";
+
+const CARD_HEIGHT_ESTIMATE = 160; // approx rendered height, used for viewport-edge flip
 
 const TIMEFRAME_LABELS: { key: string; label: string }[] = [
   { key: "5m", label: "5 Min" },
@@ -22,9 +24,21 @@ interface Props {
 
 export default function CandleHoverCard({ symbol, children }: Props) {
   const [visible, setVisible] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const [data, setData] = useState<Record<string, RawCandle[]> | null>(candleCacheBySymbol.get(symbol) ?? null);
   const [loading, setLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  // Flip the card above the trigger when there isn't enough room below
+  // (e.g. the last row in a list near the bottom of the viewport) —
+  // otherwise it renders partially off-screen / clipped.
+  useEffect(() => {
+    if (!visible || !wrapperRef.current) return;
+    const rect = wrapperRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    setOpenUpward(spaceBelow < CARD_HEIGHT_ESTIMATE && rect.top > spaceBelow);
+  }, [visible]);
 
   const fetchIfNeeded = async () => {
     if (candleCacheBySymbol.has(symbol)) {
@@ -58,11 +72,12 @@ export default function CandleHoverCard({ symbol, children }: Props) {
   };
 
   return (
-    <div style={{ position: "relative", display: "inline-block" }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+    <div ref={wrapperRef} style={{ position: "relative", display: "inline-block" }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
       {children}
       {visible && (
         <div style={{
-          position: "absolute", top: "100%", left: 0, marginTop: 6, zIndex: 50,
+          position: "absolute", left: 0, zIndex: 50,
+          ...(openUpward ? { bottom: "100%", marginBottom: 6 } : { top: "100%", marginTop: 6 }),
           background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 12,
           padding: 16, boxShadow: "0 12px 32px rgba(0,0,0,0.3)",
           display: "flex", gap: 18, whiteSpace: "nowrap",
