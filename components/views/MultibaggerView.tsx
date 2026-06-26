@@ -22,19 +22,6 @@ export default function MultibaggerView({ alerts }: { alerts: Alert[] }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 12, padding: "14px 18px" }}>
-        <h3 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: "var(--ink-0)" }}>
-          💎 Multibagger Picks — Business First, Stock Second
-        </h3>
-        <p style={{ margin: 0, fontSize: 11.5, color: "var(--ink-3)", lineHeight: 1.6 }}>
-          Only stocks in 9 structurally-growing sectors (AI, Defense, Electronics Mfg, Renewable Energy,
-          Specialty Chemicals, Data Centers, Healthcare, Capital Goods, Fintech) qualify as candidates at all.
-          Ranked by real business catalyst (news/filings) + fundamentals (growth, ROE, ownership) + sector
-          strength — <b style={{ color: "var(--ink-1)" }}>Technical Timing is shown separately</b>, since a great
-          business can be a bad entry point this week and a mediocre one can be range-bound for months.
-        </p>
-      </div>
-
       <MultibaggerTable alerts={alerts} />
 
       <p style={{ margin: 0, fontSize: 11, color: "var(--ink-4)" }}>
@@ -48,10 +35,11 @@ export default function MultibaggerView({ alerts }: { alerts: Alert[] }) {
 
 function MultibaggerTable({ alerts }: { alerts: Alert[] }) {
   return (
-    <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)30", borderRadius: 14, overflow: "hidden" }}>
+    <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)30", borderRadius: 14, overflowX: "auto" }}>
       <div style={{
         display: "grid",
-        gridTemplateColumns: "minmax(110px,1fr) 130px 70px 65px 70px 80px minmax(220px,2.5fr)",
+        minWidth: 900,
+        gridTemplateColumns: "minmax(110px,1fr) 160px 80px 70px 80px 150px minmax(280px,3fr)",
         gap: 8, padding: "10px 14px",
         color: "var(--ink-3)", fontSize: 10.5,
         textTransform: "uppercase", letterSpacing: "0.10em",
@@ -78,7 +66,8 @@ function MultibaggerTable({ alerts }: { alerts: Alert[] }) {
         return (
           <div key={a.id} style={{
             display: "grid",
-            gridTemplateColumns: "minmax(110px,1fr) 130px 70px 65px 70px 80px minmax(220px,2.5fr)",
+            minWidth: 900,
+            gridTemplateColumns: "minmax(110px,1fr) 160px 80px 70px 80px 150px minmax(280px,3fr)",
             gap: 8, padding: "10px 14px", alignItems: "start",
             borderBottom: i < alerts.length - 1 ? "1px solid var(--line)" : "none",
             background: isEven ? "rgba(91,140,255,.04)" : "transparent",

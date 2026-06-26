@@ -63,24 +63,24 @@ export default function CandleHoverCard({ symbol, children }: Props) {
       {visible && (
         <div style={{
           position: "absolute", top: "100%", left: 0, marginTop: 6, zIndex: 50,
-          background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 10,
-          padding: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-          display: "flex", gap: 10, whiteSpace: "nowrap",
+          background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 12,
+          padding: 16, boxShadow: "0 12px 32px rgba(0,0,0,0.3)",
+          display: "flex", gap: 18, whiteSpace: "nowrap",
         }}>
           {loading && !data && (
-            <span style={{ fontSize: 11, color: "var(--ink-3)" }}>Loading…</span>
+            <span style={{ fontSize: 12, color: "var(--ink-3)" }}>Loading…</span>
           )}
           {TIMEFRAME_LABELS.map(({ key, label }) => {
             const candles = data?.[key];
             return (
-              <div key={key} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <span style={{ fontSize: 9.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              <div key={key} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 11, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>
                   {label}
                 </span>
                 {candles && candles.length > 0 ? (
-                  <MiniCandlestick candles={candles} />
+                  <MiniCandlestick candles={candles} w={150} h={90} />
                 ) : (
-                  <span style={{ fontSize: 10, color: "var(--ink-4)", width: 90, textAlign: "center" }}>
+                  <span style={{ fontSize: 11, color: "var(--ink-4)", width: 150, height: 90, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
                     {data ? "No data yet" : "—"}
                   </span>
                 )}
