@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/components/ThemeProvider";
 import type { Alert } from "@/lib/types";
 import PulseDot from "./ui/PulseDot";
+import CandleHoverCard from "./ui/CandleHoverCard";
 import ProfileDropdown from "./ProfileDropdown";
 import BigMoversView from "./views/BigMoversView";
 import CupHandleView from "./views/CupHandleView";
@@ -651,10 +652,12 @@ function NextDayView({ panelsData }: { panelsData?: any }) {
       {picks.map((r: any, i: number) => (
         <div key={i} style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, padding: "16px 20px", borderLeft: "3px solid var(--accent)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <a href={tv(r.Symbol)} target="_blank" rel="noreferrer"
-              style={{ fontWeight: 700, fontSize: 15, color: "var(--ink-0)", textDecoration: "none" }}>
-              {r.Symbol} ↗
-            </a>
+            <CandleHoverCard symbol={r.Symbol}>
+              <a href={tv(r.Symbol)} target="_blank" rel="noreferrer"
+                style={{ fontWeight: 700, fontSize: 15, color: "var(--ink-0)", textDecoration: "none" }}>
+                {r.Symbol} ↗
+              </a>
+            </CandleHoverCard>
             <span style={{ background: r.Conviction === "HIGH" ? "rgba(43,208,122,.15)" : "rgba(243,181,74,.15)", color: r.Conviction === "HIGH" ? "var(--up)" : "var(--warn)", border: `1px solid ${r.Conviction === "HIGH" ? "rgba(43,208,122,.35)" : "rgba(243,181,74,.35)"}`, fontSize: 11, fontWeight: 700, padding: "2px 10px", borderRadius: 999 }}>{r.Conviction || "MEDIUM"}</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 10, marginBottom: 10 }}>

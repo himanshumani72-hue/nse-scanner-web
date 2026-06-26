@@ -1,5 +1,6 @@
 "use client";
 import { ExternalLink } from "lucide-react";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 
 function tv(symbol: string) {
   return `https://www.tradingview.com/chart/?symbol=NSE:${symbol}`;
@@ -139,22 +140,24 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
 
                 {/* Stock name + TradingView link + News Catalyst badge */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  <a
-                    href={tv(r["Ticker"] || r["Stock Name"])}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="num"
-                    title={`Open ${r["Stock Name"]} on TradingView`}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 5,
-                      fontWeight: 700, color: "var(--ink-0)", fontSize: 13,
-                      textDecoration: "none",
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.color = "var(--accent)")}
-                    onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-0)")}>
-                    {r["Stock Name"]}
-                    <ExternalLink size={11} style={{ opacity: 0.5 }} />
-                  </a>
+                  <CandleHoverCard symbol={r["Ticker"] || r["Stock Name"]}>
+                    <a
+                      href={tv(r["Ticker"] || r["Stock Name"])}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="num"
+                      title={`Open ${r["Stock Name"]} on TradingView`}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 5,
+                        fontWeight: 700, color: "var(--ink-0)", fontSize: 13,
+                        textDecoration: "none",
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "var(--accent)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-0)")}>
+                      {r["Stock Name"]}
+                      <ExternalLink size={11} style={{ opacity: 0.5 }} />
+                    </a>
+                  </CandleHoverCard>
                   {/* News catalyst badge — only shown when present */}
                   {r["News Catalyst"] && r["News Catalyst"] !== "—" && (
                     <span style={{
@@ -235,7 +238,9 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
                 onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "var(--bg-2)" : "transparent")}>
                 <span className="num" style={{ color: "var(--ink-3)", fontSize: 12 }}>{w.Rank}</span>
-                <span className="num" style={{ fontWeight: 700, color: "var(--ink-0)", fontSize: 13 }}>{w.Symbol}</span>
+                <CandleHoverCard symbol={w.Symbol}>
+                  <span className="num" style={{ fontWeight: 700, color: "var(--ink-0)", fontSize: 13 }}>{w.Symbol}</span>
+                </CandleHoverCard>
                 <span className="num" style={{ color: "var(--ink-1)", fontSize: 12 }}>₹{w.LTP}</span>
                 <span className="num" style={{ color: "var(--warn)", fontWeight: 500, fontSize: 12 }}>₹{w["Entry Zone"]}</span>
                 <span className="num" style={{ color: "var(--up)", fontWeight: 700, fontSize: 12 }}>₹{w.Target}</span>
@@ -281,18 +286,20 @@ export default function RankingTable({ panelsData }: { panelsData?: any }) {
                   onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? "var(--bg-2)" : "transparent")}>
 
                   {/* Symbol */}
-                  <a href={tv(n.Symbol)} target="_blank" rel="noreferrer"
-                    style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
-                    <div style={{ width: 26, height: 26, borderRadius: 5, flexShrink: 0,
-                      background: isPreResult ? "rgba(43,208,122,.15)" : "linear-gradient(135deg,#1a2332,#0f1622)",
-                      border: "1px solid var(--line)", display: "grid", placeItems: "center",
-                      fontSize: 9, fontWeight: 700, color: isPreResult ? "var(--up)" : "var(--ink-2)", fontFamily: "var(--mono)" }}>
-                      {n.Symbol.slice(0,2)}
-                    </div>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: "var(--ink-0)", fontFamily: "var(--mono)" }}>
-                      {n.Symbol}
-                    </span>
-                  </a>
+                  <CandleHoverCard symbol={n.Symbol}>
+                    <a href={tv(n.Symbol)} target="_blank" rel="noreferrer"
+                      style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none" }}>
+                      <div style={{ width: 26, height: 26, borderRadius: 5, flexShrink: 0,
+                        background: isPreResult ? "rgba(43,208,122,.15)" : "linear-gradient(135deg,#1a2332,#0f1622)",
+                        border: "1px solid var(--line)", display: "grid", placeItems: "center",
+                        fontSize: 9, fontWeight: 700, color: isPreResult ? "var(--up)" : "var(--ink-2)", fontFamily: "var(--mono)" }}>
+                        {n.Symbol.slice(0,2)}
+                      </div>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: "var(--ink-0)", fontFamily: "var(--mono)" }}>
+                        {n.Symbol}
+                      </span>
+                    </a>
+                  </CandleHoverCard>
 
                   <span className="num" style={{ fontSize: 12.5, color: "var(--ink-0)" }}>₹{n.LTP}</span>
                   <span className="num" style={{ fontSize: 12, fontWeight: 600, color: "var(--up)" }}>{n["Today Vol"]}</span>

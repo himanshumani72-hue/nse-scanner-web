@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { PortfolioEnriched, PortfolioAlertsCross } from "@/lib/types";
 import { TrendingUp, TrendingDown, ExternalLink, Plus, Trash2, Edit3 } from "lucide-react";
+import CandleHoverCard from "@/components/ui/CandleHoverCard";
 
 // ── TradingView link ─────────────────────────────────────────────────────
 function tvLink(symbol: string, exchange: string = "NSE") {
@@ -332,18 +333,20 @@ export default function PortfolioView() {
                 >
                   <td style={{ padding: "10px 12px", color: "var(--ink-3)", fontSize: 12 }}>{i + 1}</td>
                   <td style={{ padding: "10px 12px" }}>
-                    <a
-                      href={tvLink(h.symbol, h.exchange)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        color: "var(--accent)", fontWeight: 700, textDecoration: "none",
-                        display: "inline-flex", alignItems: "center", gap: 4,
-                      }}
-                    >
-                      {h.symbol}
-                      <ExternalLink size={10} style={{ opacity: 0.5 }} />
-                    </a>
+                    <CandleHoverCard symbol={h.symbol}>
+                      <a
+                        href={tvLink(h.symbol, h.exchange)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: "var(--accent)", fontWeight: 700, textDecoration: "none",
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                        }}
+                      >
+                        {h.symbol}
+                        <ExternalLink size={10} style={{ opacity: 0.5 }} />
+                      </a>
+                    </CandleHoverCard>
                     <div style={{ fontSize: 10, color: "var(--ink-4)" }}>{h.exchange}</div>
                   </td>
                   <td style={{ padding: "10px 12px", color: "var(--ink-0)", fontWeight: 500 }}>{h.quantity}</td>
