@@ -47,6 +47,32 @@ function Td({ children, mono = false }: { children: React.ReactNode; mono?: bool
   );
 }
 
+// Industry/Moat reasons are ~100 words — too long for a normal cell.
+// Clamped to 3 lines by default with a toggle to show the full text
+// (the row grows taller, table stays intact).
+function ExpandableCell({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!text) return <td style={{ padding: "8px 10px", borderBottom: "1px solid var(--line)" }}>—</td>;
+  return (
+    <td style={{
+      padding: "8px 10px", fontSize: 11.5, color: "var(--ink-1)", lineHeight: 1.5,
+      borderBottom: "1px solid var(--line)", whiteSpace: "normal", minWidth: 260, maxWidth: 320,
+    }}>
+      <div style={expanded ? undefined : {
+        display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
+      }}>
+        {text}
+      </div>
+      <button onClick={() => setExpanded(v => !v)} style={{
+        background: "none", border: "none", padding: 0, marginTop: 3, cursor: "pointer",
+        fontSize: 10.5, fontWeight: 600, color: "var(--accent-2)",
+      }}>
+        {expanded ? "Show less" : "See more"}
+      </button>
+    </td>
+  );
+}
+
 export default function MultibaggerView({ alerts }: { alerts: Alert[] }) {
   const [dailyCloses, setDailyCloses] = useState<Record<string, number[]>>({});
 
@@ -89,11 +115,11 @@ export default function MultibaggerView({ alerts }: { alerts: Alert[] }) {
           <thead>
             <tr>
               <Th>Stock</Th><Th>LTP</Th><Th>LTP%</Th><Th>Line Chart</Th>
-              <Th>Vol Chg%</Th><Th>Vol Chg 3D%</Th>
+              <Th>Vol Chg% (vs 20d avg)</Th><Th>Vol Chg 3D% (vs 20d avg)</Th>
               <Th>Industry Reason</Th><Th>Business Reason (Moat)</Th>
               <Th>Timing</Th><Th>RSI</Th><Th>ATR</Th><Th>BB Width%</Th><Th>Consolidation</Th><Th>EMA51</Th><Th>EMA21</Th>
               <Th>Sector</Th><Th>EPS</Th><Th>ROE%</Th><Th>ROCE%*</Th><Th>PE</Th><Th>PEG</Th><Th>Sales Gr%</Th>
-              <Th>Promoter%</Th><Th>Promoter Prior%</Th><Th>Recent News</Th>
+              <Th>Promoter%</Th><Th>Recent News</Th>
             </tr>
           </thead>
           <tbody>
@@ -103,9 +129,15 @@ export default function MultibaggerView({ alerts }: { alerts: Alert[] }) {
       </div>
 
       <p style={{ margin: 0, fontSize: 11, color: "var(--ink-4)" }}>
-        ⚠️ ROCE* uses Return on Assets as a proxy (no true ROCE field). Promoter % &quot;prior&quot; is our last
-        scan snapshot at least ~25 days back, not a genuine monthly disclosure — Indian promoter holding is
-        disclosed quarterly under SEBI Reg 31, not monthly.
+        ⚠️ ROCE* uses Return on Assets as a proxy (no true ROCE field). Vol Chg% columns compare against the
+        prior 20-day average volume — a negative number means trading volume is currently below its recent
+        normal level, not an error.
+      </p>
+      <p style={{ margin: 0, fontSize: 11, color: "var(--ink-4)" }}>
+        🤖 Industry Reason and Business Reason (Moat) are AI-generated from the structured data shown in this
+        table. They&apos;re instructed to use only that data, but for well-known companies an AI model can still
+        blend in general background knowledge it was trained on — treat these as a starting point for your own
+        research, not a verified fact.
       </p>
       <p style={{ margin: 0, fontSize: 11, color: "var(--ink-4)" }}>
         🕐 This tab updates last, after every other panel has refreshed for the day, and can take 5-10+ extra
@@ -139,8 +171,8 @@ function Row({ alert: a, isEven, closes }: { alert: Alert; isEven: boolean; clos
       <Td>{closes && closes.length > 1 ? <Sparkline data={closes} w={90} h={28} color="var(--accent-2)" /> : "—"}</Td>
       <Td mono>{d["Volume Change %"] != null ? `${d["Volume Change %"]}%` : "—"}</Td>
       <Td mono>{d["Volume Change 3D %"] != null ? `${d["Volume Change 3D %"]}%` : "—"}</Td>
-      <Td>{String(d["Industry Reason"] ?? "—")}</Td>
-      <Td>{String(d["Business Reason (Moat)"] ?? "—")}</Td>
+      <ExpandableCell text={String(d["Industry Reason"] ?? "")} />
+      <ExpandableCell text={String(d["Business Reason (Moat)"] ?? "")} />
       <Td><span style={{ fontWeight: 600, color: timingColor }}>{timing}</span></Td>
       <Td mono>{d["RSI"] ?? "—"}</Td>
       <Td mono>{d["ATR"] ?? "—"}</Td>
@@ -156,7 +188,6 @@ function Row({ alert: a, isEven, closes }: { alert: Alert; isEven: boolean; clos
       <Td mono>{d["PEG"] ?? "—"}</Td>
       <Td mono>{d["Sales Growth %"] != null ? `${d["Sales Growth %"]}%` : "—"}</Td>
       <Td mono>{d["Promoter Holding %"] != null ? `${d["Promoter Holding %"]}%` : "—"}</Td>
-      <Td mono>{d["Promoter Holding Prior %"] != null ? `${d["Promoter Holding Prior %"]}%` : "n/a yet"}</Td>
       <Td>{String(d["Recent News"] ?? "—")}</Td>
     </tr>
   );
