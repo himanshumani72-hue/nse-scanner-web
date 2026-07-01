@@ -265,7 +265,21 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     return alerts.map(a => {
       const live = liveLtp.get(a.symbol);
       if (!live) return a;
-      return { ...a, data: { ...a.data, LTP: live.ltp, _liveLtp: true } };
+      const pct = live.changePct;
+      return {
+        ...a,
+        data: {
+          ...a.data,
+          LTP: live.ltp,
+          _liveLtp: true,
+          // Update every field name the views use for today's % change
+          ...(pct !== null && {
+            "Today Chg %": pct,
+            "% Change":    pct,
+            "LTP %":       pct,
+          }),
+        },
+      };
     });
   }
 
