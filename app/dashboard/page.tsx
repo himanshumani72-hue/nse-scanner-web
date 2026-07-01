@@ -52,6 +52,9 @@ export default async function DashboardPage() {
   const flatUp       = alerts?.filter(a => a.scan_type === "FLAT_BASE_UP")          ?? [];
   const flatDown     = alerts?.filter(a => a.scan_type === "FLAT_BASE_DOWN")        ?? [];
   const multibagger  = alerts?.filter(a => a.scan_type === "MULTIBAGGER")          ?? [];
+  const cupHandle    = alerts?.filter(a => a.scan_type === "CUP_HANDLE_BREAKOUT")  ?? [];
+  const channelPB    = alerts?.filter(a => a.scan_type === "CHANNEL_PULLBACK")     ?? [];
+  const reversalBrk  = alerts?.filter(a => a.scan_type === "REVERSAL_BREAKOUT")    ?? [];
   const alertsLast   = alerts?.[0]?.scanned_at ?? null;
 
   // Fetch market overview data
@@ -131,6 +134,9 @@ export default async function DashboardPage() {
       flatUpAlerts={flatUp}
       flatDownAlerts={flatDown}
       multibaggerAlerts={multibagger}
+      cupHandleAlerts={cupHandle}
+      channelPullbackAlerts={channelPB}
+      reversalBreakoutAlerts={reversalBrk}
       marketData={marketData}
       panelsData={panelsData}
       healthData={healthData}

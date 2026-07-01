@@ -20,6 +20,7 @@ import TwitterSpikeView from "./views/TwitterSpikeView";
 import BBSqueezeView from "./views/BBSqueezeView";
 import FlatBaseView from "./views/FlatBaseView";
 import MultibaggerView from "./views/MultibaggerView";
+import PatternScanView from "./views/PatternScanView";
 import Breakout1DView from "./views/Breakout1DView";
 import MarketOverview from "./MarketOverview";
 import RankingTable from "./RankingTable";
@@ -51,6 +52,9 @@ interface Props {
   flatUpAlerts?:     Alert[];
   flatDownAlerts?:   Alert[];
   multibaggerAlerts?: Alert[];
+  cupHandleAlerts?: Alert[];
+  channelPullbackAlerts?: Alert[];
+  reversalBreakoutAlerts?: Alert[];
   marketData?:     any;
   panelsData?:     any;
   healthData?:     any;
@@ -60,7 +64,7 @@ interface Props {
   promoEnabled?:   boolean;  // is the launch offer currently active site-wide?
 }
 
-type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "bbsqueeze" | "flatup" | "flatdown" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "breakout1d" | "bulkdeals" | "sectors" | "broker" | "ranking" | "portfolio" | "trackrecord";
+type Tab = "overview" | "movers" | "twitter" | "patterns" | "wpattern" | "turnaround" | "bbsqueeze" | "flatup" | "flatdown" | "momentum" | "falling" | "nextday" | "multibagger" | "breakout" | "breakout1d" | "bulkdeals" | "sectors" | "broker" | "ranking" | "portfolio" | "trackrecord" | "cuphandle2" | "channelpb" | "reversalbrk";
 
 /* ── Nav dropdown for dashboard ─────────────────────── */
 function DashDropdown({
@@ -155,7 +159,7 @@ const ICONS = {
   W:       () => <svg width={12} height={12} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1.5 3 L3.5 9 L5 5 L7 9 L9 5 L10.5 9" strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
 
-export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], breakout1dAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], bbSqueezeAlerts = [], flatUpAlerts = [], flatDownAlerts = [], multibaggerAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
+export default function DashboardClient({ userEmail, subStatus, daysLeft, lastScan, bigMovers, chartPatterns, wPatterns, cannonAlerts = [], boomerangAlerts = [], turnaroundAlerts = [], bulkDealsAlerts = [], breakoutAlerts = [], breakout1dAlerts = [], sectorAlerts = [], brokerAlerts = [], twitterAlerts = [], bbSqueezeAlerts = [], flatUpAlerts = [], flatDownAlerts = [], multibaggerAlerts = [], cupHandleAlerts = [], channelPullbackAlerts = [], reversalBreakoutAlerts = [], marketData, panelsData, healthData, promoLeft = 0, nextPrice = 99, promoEnabled = false }: Props) {
   const [tab,         setTab]        = useState<Tab>("overview");
   const [movers,      setMovers]     = useState<Alert[]>(bigMovers);
   const [patterns,    setPatterns]   = useState<Alert[]>(chartPatterns);
@@ -173,6 +177,9 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   const [flatUp,      setFlatUp]     = useState<Alert[]>(flatUpAlerts);
   const [flatDown,    setFlatDown]   = useState<Alert[]>(flatDownAlerts);
   const [multibagger, setMultibagger]= useState<Alert[]>(multibaggerAlerts);
+  const [cupHandle2,  setCupHandle2] = useState<Alert[]>(cupHandleAlerts);
+  const [channelPB,   setChannelPB]  = useState<Alert[]>(channelPullbackAlerts);
+  const [reversalBrk, setReversalBrk]= useState<Alert[]>(reversalBreakoutAlerts);
   const [lastUpdated, setLastUpdated]= useState<string | null>(lastScan);
   const [isLive,      setIsLive]     = useState(false);
   const [clock,       setClock]      = useState("");
@@ -218,6 +225,9 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
         if (a.scan_type === "FLAT_BASE_UP")      setFlatUp(prev     => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "FLAT_BASE_DOWN")    setFlatDown(prev   => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
         if (a.scan_type === "MULTIBAGGER")       setMultibagger(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "CUP_HANDLE_BREAKOUT") setCupHandle2(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "CHANNEL_PULLBACK")    setChannelPB(prev  => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
+        if (a.scan_type === "REVERSAL_BREAKOUT")   setReversalBrk(prev => [a, ...prev.filter(x => x.symbol !== a.symbol)]);
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
@@ -230,7 +240,8 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
   // changes needed.
   useEffect(() => {
     const allAlerts = [movers, patterns, wPats, momentum, boomerang, turnaround, bulkDeals,
-                        breakout, breakout1d, broker, twitter, bbSqueeze, flatUp, flatDown, multibagger];
+                        breakout, breakout1d, broker, twitter, bbSqueeze, flatUp, flatDown, multibagger,
+                        cupHandle2, channelPB, reversalBrk];
     const symbols = Array.from(new Set(allAlerts.flat().map(a => a.symbol))).filter(Boolean);
     if (symbols.length === 0) return;
 
@@ -247,7 +258,7 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     const id = setInterval(poll, 5000);
     return () => { cancelled = true; clearInterval(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [movers, patterns, wPats, momentum, boomerang, turnaround, bulkDeals, breakout, breakout1d, broker, twitter, bbSqueeze, flatUp, flatDown, multibagger]);
+  }, [movers, patterns, wPats, momentum, boomerang, turnaround, bulkDeals, breakout, breakout1d, broker, twitter, bbSqueeze, flatUp, flatDown, multibagger, cupHandle2, channelPB, reversalBrk]);
 
   function mergeLive(alerts: Alert[]): Alert[] {
     if (liveLtp.size === 0) return alerts;
@@ -284,6 +295,9 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     { id: "bbsqueeze", label: "BB Squeeze Breakout",    emoji: "🎯", desc: "Narrow band + above midline" },
     { id: "flatup",    label: "Flat Base Breakout ↑",   emoji: "📦", desc: "Consolidation breakout bullish" },
     { id: "flatdown",  label: "Flat Base Breakdown ↓",  emoji: "📉", desc: "Consolidation breakdown bearish" },
+    { id: "cuphandle2",label: "Cup & Handle (Strict)",  emoji: "☕", desc: "Multi-month base + handle breakout" },
+    { id: "channelpb", label: "Channel Pullback",       emoji: "📐", desc: "Rising channel, retest support" },
+    { id: "reversalbrk",label: "Reversal Breakout",     emoji: "🔄", desc: "Was falling, now breaking up" },
   ];
 
   // ── Stock Analysis dropdown ─────────────────────
@@ -306,6 +320,9 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     bbsqueeze:  bbSqueeze.length,
     flatup:     flatUp.length,
     flatdown:   flatDown.length,
+    cuphandle2: cupHandle2.length,
+    channelpb:  channelPB.length,
+    reversalbrk:reversalBrk.length,
     ranking:    panelsData?.ranking?.length ?? 0,
     momentum:   momentum.length,
     falling:    (boomerang.length + (panelsData?.falling_stocks?.length ?? 0)),
@@ -314,6 +331,40 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
     breakout1d: breakout1d.length,
     bulkdeals:  bulkDeals.length,
   };
+
+  const pctColor = (v: unknown) => {
+    const n = parseFloat(String(v));
+    return Number.isFinite(n) ? (n >= 0 ? "var(--up)" : "var(--down)") : "var(--ink-2)";
+  };
+  const CUP_HANDLE_COLS = [
+    { key: "LTP", label: "LTP", format: (v: unknown) => `₹${v ?? "—"}` },
+    { key: "Today %", label: "Today", format: (v: unknown) => `${v}%`, color: pctColor },
+    { key: "Cup Decline %", label: "Cup Decline", format: (v: unknown) => `${v}%` },
+    { key: "Handle Depth %", label: "Handle Depth", format: (v: unknown) => `${v}%` },
+    { key: "% Above SMA-200", label: "% vs SMA200", format: (v: unknown) => `${v}%`, color: pctColor },
+    { key: "RSI", label: "RSI" },
+    { key: "Volume Ratio", label: "Vol Ratio", format: (v: unknown) => `${v}x` },
+    { key: "Score", label: "Score" },
+  ];
+  const CHANNEL_PB_COLS = [
+    { key: "LTP", label: "LTP", format: (v: unknown) => `₹${v ?? "—"}` },
+    { key: "Today %", label: "Today", format: (v: unknown) => `${v}%`, color: pctColor },
+    { key: "Prior Rise %", label: "Prior Rise", format: (v: unknown) => `${v}%` },
+    { key: "Position In Channel %", label: "Pos In Channel", format: (v: unknown) => `${v}%` },
+    { key: "Peak Volume Spike (x avg)", label: "Peak Vol Spike", format: (v: unknown) => `${v}x` },
+    { key: "Fit Quality", label: "Fit Quality" },
+    { key: "RSI", label: "RSI" },
+    { key: "Score", label: "Score" },
+  ];
+  const REVERSAL_COLS = [
+    { key: "LTP", label: "LTP", format: (v: unknown) => `₹${v ?? "—"}` },
+    { key: "Today %", label: "Today", format: (v: unknown) => `${v}%`, color: pctColor },
+    { key: "Decline %", label: "Prior Decline", format: (v: unknown) => `${v}%` },
+    { key: "Bounce Off Low %", label: "Bounce Off Low", format: (v: unknown) => `${v}%` },
+    { key: "RSI", label: "RSI" },
+    { key: "Volume Ratio", label: "Vol Ratio", format: (v: unknown) => `${v}x` },
+    { key: "Score", label: "Score" },
+  ];
 
   const stats = [
     { label: "Big Mover Alerts",  value: movers.length,                       hint: "Triggered today",       icon: ICONS.Bolt,    tone: "--up" },
@@ -563,6 +614,15 @@ export default function DashboardClient({ userEmail, subStatus, daysLeft, lastSc
           {tab === "bbsqueeze"  && <BBSqueezeView    alerts={mergeLive(bbSqueeze)} />}
           {tab === "flatup"     && <FlatBaseView     alerts={mergeLive(flatUp)}   direction="up"   />}
           {tab === "flatdown"   && <FlatBaseView     alerts={mergeLive(flatDown)} direction="down" />}
+          {tab === "cuphandle2" && <PatternScanView  alerts={mergeLive(cupHandle2)} emoji="☕" title="Cup & Handle (Strict)"
+                                      description="Multi-month rounding base (price below SMA-200 for most of it), reclaims SMA-200 and the prior swing high, pulls back into a shallow 3-18% handle, then breaks out above the handle high again."
+                                      columns={CUP_HANDLE_COLS} />}
+          {tab === "channelpb"  && <PatternScanView  alerts={mergeLive(channelPB)} emoji="📐" title="Rising Channel Pullback"
+                                      description="Established uptrend in a rising channel with a real volume-spike breakout somewhere in it, price now pulling back to retest the lower trendline (support) — buy-the-dip-in-an-uptrend, not a breakdown."
+                                      columns={CHANNEL_PB_COLS} />}
+          {tab === "reversalbrk" && <PatternScanView alerts={mergeLive(reversalBrk)} emoji="🔄" title="Downtrend Reversal Breakout"
+                                      description="Real prior decline, price has turned up off the low, and just broke back above its own declining EMA-21 (trendline-breakout proxy) with the EMA itself turning up — was falling, now starting to rise."
+                                      columns={REVERSAL_COLS} />}
           {tab === "falling"    && <AboutToFallView  boomerangAlerts={mergeLive(boomerang)} panelsData={panelsData} />}
           {tab === "ranking"    && <RankingTable     panelsData={panelsData} />}
           {tab === "portfolio" && <PortfolioTab />}

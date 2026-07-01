@@ -107,7 +107,8 @@ export default function MultibaggerView({ alerts }: { alerts: Alert[] }) {
       <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--ink-0)" }}>💎 Multibagger Stocks</h2>
       <p style={{ margin: 0, fontSize: 11.5, color: "var(--ink-3)" }}>
         Top {alerts.length} candidates after deep analysis (sector + catalyst + fundamentals + technical timing).
-        Only stocks above their daily EMA-51 with real upward momentum qualify.
+        Only one chart pattern qualifies: 3+ months of tight, flat consolidation followed by a breakout on
+        positive volume, with price still close to EMA-51 — not stocks that have already run far past it.
       </p>
 
       <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 14, overflowX: "auto" }}>
